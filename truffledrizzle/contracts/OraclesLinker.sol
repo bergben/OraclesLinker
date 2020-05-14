@@ -4,6 +4,9 @@ import "@chainlink/contracts/src/v0.5/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.5/LinkTokenReceiver.sol";
 import "@chainlink/contracts/src/v0.5/Median.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "./OraclesStore.sol";
+import "./OraclesSelector.sol";
+import "./OraclesLinkAggregator.sol";
 
 
 /**
@@ -12,28 +15,23 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
  * @dev This contract accepts requests as service agreement IDs and loops over
  * the corresponding list of oracles to create distinct requests to each one.
  */
-contract OraclesLinker is ChainlinkClient, Ownable, ChainlinkRequestInterface, LinkTokenReceiver {
+contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesStore, OraclesSelector, OraclesLinkAggregator {
     using SafeMath for uint256;
 
-    uint256 private constant MAX_ORACLE_COUNT = 45;
+    uint256 private constant MAX_TOTAL_LEVEL_REQUESTS = 21;
 
     uint256 private globalNonce;
 
-    struct LevelSection {
+    struct LevelRequirements {
         uint256 totalRequests;
         uint256 minResponses;
         uint256 activeRequests;
     }
 
-    struct ServiceAgreement {
-        uint256 totalPayment;
-        uint256 minResponses;
-        LevelSection noviceOracles;
-        LevelSection matureOracles;
-        LevelSection seniorOracles;
-        address[] oracles;
-        bytes32[] jobIds;
-        uint256[] payments;
+    struct OraclesLinkRequirements {
+        LevelRequirements noviceOracles;
+        LevelRequirements matureOracles;
+        LevelRequirements seniorOracles;
     }
 
     struct Requester {
@@ -73,6 +71,56 @@ contract OraclesLinker is ChainlinkClient, Ownable, ChainlinkRequestInterface, L
     }
 
     /**
+     * @notice Creates the Chainlink request
+     * @dev Stores the hash of the params as the on-chain commitment for the request.
+     * Emits OracleRequest event for the Chainlink node to detect.
+     * @param _sender The sender of the request
+     * @param _payment The amount of payment given (specified in wei)
+     * @param _saId The Job Specification ID
+     * @param _callbackAddress The callback address for the response
+     * @param _callbackFunctionId The callback function ID for the response
+     * @param _nonce The nonce sent by the requester
+     * @param _data The CBOR payload of the request
+     */
+    function oracleRequest(
+        address _sender,
+        uint256 _payment,
+        bytes32 _saId,
+        address _callbackAddress,
+        bytes4 _callbackFunctionId,
+        uint256 _nonce,
+        uint256,
+        bytes calldata _data
+    ) external onlyLINK checkCallbackAddress(_callbackAddress) {
+        uint256 totalPayment = serviceAgreements[_saId].totalPayment;
+        // this revert message does not bubble up
+        require(_payment >= totalPayment, "Insufficient payment");
+        bytes32 callbackRequestId = keccak256(abi.encodePacked(_sender, _nonce));
+        require(requesters[callbackRequestId].sender == address(0), "Nonce already in-use");
+        requesters[callbackRequestId].callbackFunctionId = _callbackFunctionId;
+        requesters[callbackRequestId].callbackAddress = _callbackAddress;
+        requesters[callbackRequestId].sender = _sender;
+        createRequests(_saId, callbackRequestId, _data);
+        if (_payment > totalPayment) {
+            uint256 overage = _payment.sub(totalPayment);
+            LinkTokenInterface _link = LinkTokenInterface(chainlinkTokenAddress());
+            assert(_link.transfer(_sender, overage));
+        }
+    }
+
+    function getBytes32Link(
+        string memory url,
+        string memory path,
+        OraclesLinkRequirements memory requirements
+    ) internal returns (bytes32 oraclesLinkId) {
+        // validate requirements
+        // find random oracles
+        // send requests
+        // return oraclesLinkId? (or requestIds?)
+        // chainlink hat Median implementation
+    }
+
+    /**
      * @notice Allows the owner of the contract to create new service agreements
      * with multiple oracles. Each oracle will have their own Job ID and can have
      * their own payment amount.
@@ -84,12 +132,12 @@ contract OraclesLinker is ChainlinkClient, Ownable, ChainlinkRequestInterface, L
      * @param _jobIds The corresponding list of Job IDs.
      * @param _payments The corresponding list of payment amounts.
      */
-    function createServiceAgreement(
-        uint256 _minResponses,
-        address[] calldata _oracles,
-        bytes32[] calldata _jobIds,
-        uint256[] calldata _payments
-    ) external onlyOwner returns (bytes32 saId) {
+    function createOraclesLinkRequirements(
+        LevelRequirements noviceOracles,
+        LevelRequirements matureOracles,
+        LevelRequirements seniorOracles,
+        maxPayment
+    ) external onlyOwner returns (OraclesLinkRequirements memory requirements) {
         require(_minResponses > 0, "Min responses must be > 0");
         require(_oracles.length == _jobIds.length && _oracles.length == _payments.length, "Unmet length");
         require(_oracles.length <= MAX_ORACLE_COUNT, "Cannot have more than 45 oracles");
@@ -98,7 +146,8 @@ contract OraclesLinker is ChainlinkClient, Ownable, ChainlinkRequestInterface, L
         for (uint256 i = 0; i < _payments.length; i++) {
             totalPayment = totalPayment.add(_payments[i]);
         }
-        saId = keccak256(abi.encodePacked(globalNonce, now));
+        /* solium-disable-next-line */
+        saId = keccak256(abi.encodePacked(globalNonce, block.timestamp));
         globalNonce++; // yes, let it overflow
         serviceAgreements[saId] = ServiceAgreement(totalPayment, _minResponses, 0, _oracles, _jobIds, _payments);
 
@@ -239,7 +288,7 @@ contract OraclesLinker is ChainlinkClient, Ownable, ChainlinkRequestInterface, L
             delete requesters[cbRequestId];
             int256 result = Median.calculate(req.responses);
             emit ServiceAgreementAnswerUpdated(saId, cbRequestId, result);
-            // solhint-disable-next-line avoid-low-level-calls
+            /* solium-disable-next-line */
             (bool success, ) = req.callbackAddress.call(abi.encodeWithSelector(req.callbackFunctionId, cbRequestId, result));
             return success;
         }
