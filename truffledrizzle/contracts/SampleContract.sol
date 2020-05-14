@@ -10,6 +10,14 @@ import "./OraclesLinker.sol";
  * local test networks
  */
 contract SampleContract is OraclesLinker {
+    // user builds request for multiple sources similar to how chainlink buildRequest and then sendTo works
+    // Request foo = buildRequest(JobType);
+    // foo.addSource(url);
+    // foo.addSource(url2);
+    // foo.addSource(url3);
+    // foo.setAggregateMethod(AggregationMethod.Median);
+    // sendRequest(foo, payment);
+
     uint256 public data;
 
     /**

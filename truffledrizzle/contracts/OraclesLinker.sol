@@ -4,7 +4,7 @@ import "@chainlink/contracts/src/v0.5/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.5/LinkTokenReceiver.sol";
 import "@chainlink/contracts/src/v0.5/Median.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./OraclesStore.sol";
+import "./OraclesLink.sol";
 import "./OraclesSelector.sol";
 import "./OraclesLinkAggregator.sol";
 
@@ -15,24 +15,121 @@ import "./OraclesLinkAggregator.sol";
  * @dev This contract accepts requests as service agreement IDs and loops over
  * the corresponding list of oracles to create distinct requests to each one.
  */
-contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesStore, OraclesSelector, OraclesLinkAggregator {
+contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesSelector, OraclesLinkAggregator {
     using SafeMath for uint256;
 
     uint256 private constant MAX_TOTAL_LEVEL_REQUESTS = 21;
 
+    function getInt256Link(
+        string memory _url,
+        string memory _path,
+        uint256 memory times,
+        OraclesLink.Requirements memory _requirements
+    ) internal onlyLINK checkCallbackAddress(_callbackAddress) onlyValidRequirements(_requirements) returns (bytes32 oraclesLinkId) {
+        // Todo: Payment with transferAndCall compatibility, implement similar to how in PreCoordinator and adapt from LinkTokenReceiver.
+        // select random oracle for requirements
+
+        // loop over the selection method and aggregate the oracles in arrays
+        address[] oracleAddresses;
+        bytes32[] jobIds;
+        uint256[] payments;
+        uint256[] alreadySelected;
+        uint256 totalOracles = 0;
+
+        // select senior nodes
+        for (uint256 i = 0; i < _requirements.seniorOraclesCount; i++) {
+            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
+                OraclesLink.JobType.HttpGetInt256,
+                OraclesLink.OraclesLevel.Senior,
+                totalOracles,
+                alreadySelected
+            );
+            totalOracles++;
+        }
+        delete alreadySelected;
+
+        // select mature nodes
+        for (uint256 i = 0; i < _requirements.matureOraclesCount; i++) {
+            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
+                OraclesLink.JobType.HttpGetInt256,
+                OraclesLink.OraclesLevel.Mature,
+                totalOracles,
+                alreadySelected
+            );
+            totalOracles++;
+        }
+        delete alreadySelected;
+
+        // select novice nodes
+        for (uint256 i = 0; i < _requirements.noviceOraclesCount; i++) {
+            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
+                OraclesLink.JobType.HttpGetInt256,
+                OraclesLink.OraclesLevel.Novice,
+                totalOracles,
+                alreadySelected
+            );
+            totalOracles++;
+        }
+        delete alreadySelected;
+
+        // send out requests
+        createRequests();
+        // return oraclesLinkId? (or requestIds?)
+        // todo add requirement -> there have to be this many oracles available for a certain jobType / level
+    }
+
+    function createOraclesLinkRequirements(
+        uint256 _noviceOraclesCount,
+        uint256 _noviceMinResponses,
+        uint256 _matureOraclesCount,
+        uint256 _matureMinResponses,
+        uint256 _seniorOraclesCount,
+        uint256 _seniorMinResponses
+    )
+        internal
+        onlyValidRequirements(
+            OraclesLink.Requirements(
+                _noviceOraclesCount,
+                _noviceMinResponses,
+                _matureOraclesCount,
+                _matureMinResponses,
+                _seniorOraclesCount,
+                _seniorMinResponses
+            )
+        )
+        returns (OraclesLink.Requirements memory requirements)
+    {
+        return
+            OraclesLink.Requirements(
+                _noviceOraclesCount,
+                _noviceMinResponses,
+                _matureOraclesCount,
+                _matureMinResponses,
+                _seniorOraclesCount,
+                _seniorMinResponses
+            );
+    }
+
+    modifier onlyValidRequirements(OraclesLink.Requirements memory _requirements) {
+        // enforce security with senior oracles
+        require(_requirements.seniorOraclesCount > 0, "Senior oracles count must be > 0");
+        require(_requirements.seniorMinResponses > 0, "Min senior responses must be > 0");
+        require(
+            _requirements.seniorOraclesCount > (matureOraclesCount.add(noviceOraclesCount)),
+            "Senior oracles count must be > (mature oracles count + novice oracles count)"
+        );
+
+        require(_requirements.noviceOraclesCount <= MAX_ORACLE_COUNT, "Cannot have more than 21 oracles per level");
+        require(_requirements.matureOraclesCount <= MAX_ORACLE_COUNT, "Cannot have more than 21 oracles per level");
+        require(_requirements.seniorOraclesCount <= MAX_ORACLE_COUNT, "Cannot have more than 21 oracles per level");
+
+        _;
+    }
+
+    // ----------------------------------------------------------------------------
+    //
+    // from PreCoordaintor, Todo:
     uint256 private globalNonce;
-
-    struct LevelRequirements {
-        uint256 totalRequests;
-        uint256 minResponses;
-        uint256 activeRequests;
-    }
-
-    struct OraclesLinkRequirements {
-        LevelRequirements noviceOracles;
-        LevelRequirements matureOracles;
-        LevelRequirements seniorOracles;
-    }
 
     struct Requester {
         bytes4 callbackFunctionId;
@@ -108,92 +205,6 @@ contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesSt
         }
     }
 
-    function getBytes32Link(
-        string memory url,
-        string memory path,
-        OraclesLinkRequirements memory requirements
-    ) internal returns (bytes32 oraclesLinkId) {
-        // validate requirements
-        // find random oracles
-        // send requests
-        // return oraclesLinkId? (or requestIds?)
-        // chainlink hat Median implementation
-    }
-
-    /**
-     * @notice Allows the owner of the contract to create new service agreements
-     * with multiple oracles. Each oracle will have their own Job ID and can have
-     * their own payment amount.
-     * @dev The globalNonce keeps service agreement IDs unique. Assume one cannot
-     * create the max uint256 number of service agreements in the same block.
-     * @param _minResponses The minimum number of responses before the requesting
-     * contract is called with the response data.
-     * @param _oracles The list of oracle contract addresses.
-     * @param _jobIds The corresponding list of Job IDs.
-     * @param _payments The corresponding list of payment amounts.
-     */
-    function createOraclesLinkRequirements(
-        LevelRequirements noviceOracles,
-        LevelRequirements matureOracles,
-        LevelRequirements seniorOracles,
-        maxPayment
-    ) external onlyOwner returns (OraclesLinkRequirements memory requirements) {
-        require(_minResponses > 0, "Min responses must be > 0");
-        require(_oracles.length == _jobIds.length && _oracles.length == _payments.length, "Unmet length");
-        require(_oracles.length <= MAX_ORACLE_COUNT, "Cannot have more than 45 oracles");
-        require(_oracles.length >= _minResponses, "Invalid min responses");
-        uint256 totalPayment;
-        for (uint256 i = 0; i < _payments.length; i++) {
-            totalPayment = totalPayment.add(_payments[i]);
-        }
-        /* solium-disable-next-line */
-        saId = keccak256(abi.encodePacked(globalNonce, block.timestamp));
-        globalNonce++; // yes, let it overflow
-        serviceAgreements[saId] = ServiceAgreement(totalPayment, _minResponses, 0, _oracles, _jobIds, _payments);
-
-        emit NewServiceAgreement(saId, totalPayment, _minResponses);
-    }
-
-    /**
-     * @notice This is a helper function to retrieve the details of a service agreement
-     * by its given service agreement ID.
-     * @dev This function is used instead of the public mapping to return the values
-     * of the arrays: oracles, jobIds, and payments.
-     */
-    function getServiceAgreement(bytes32 _saId)
-        external
-        view
-        returns (
-            uint256 totalPayment,
-            uint256 minResponses,
-            uint256 activeRequests,
-            address[] memory oracles,
-            bytes32[] memory jobIds,
-            uint256[] memory payments
-        )
-    {
-        return (
-            serviceAgreements[_saId].totalPayment,
-            serviceAgreements[_saId].minResponses,
-            serviceAgreements[_saId].activeRequests,
-            serviceAgreements[_saId].oracles,
-            serviceAgreements[_saId].jobIds,
-            serviceAgreements[_saId].payments
-        );
-    }
-
-    /**
-     * @notice Deletes a service agreement from storage
-     * @dev Use this with caution since there may be responses waiting to come
-     * back for a service agreement. This can be monitored off-chain by looking
-     * for the ServiceAgreementRequested event.
-     * @param _saId The service agreement ID
-     */
-    function deleteServiceAgreement(bytes32 _saId) external onlyOwner whenNotActive(_saId) {
-        delete serviceAgreements[_saId];
-        emit ServiceAgreementDeleted(_saId);
-    }
-
     /**
      * @notice Returns the address of the LINK token
      * @dev This is the public implementation for chainlinkTokenAddress, which is
@@ -201,44 +212,6 @@ contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesSt
      */
     function getChainlinkToken() public view returns (address) {
         return chainlinkTokenAddress();
-    }
-
-    /**
-     * @notice Creates the Chainlink request
-     * @dev Stores the hash of the params as the on-chain commitment for the request.
-     * Emits OracleRequest event for the Chainlink node to detect.
-     * @param _sender The sender of the request
-     * @param _payment The amount of payment given (specified in wei)
-     * @param _saId The Job Specification ID
-     * @param _callbackAddress The callback address for the response
-     * @param _callbackFunctionId The callback function ID for the response
-     * @param _nonce The nonce sent by the requester
-     * @param _data The CBOR payload of the request
-     */
-    function oracleRequest(
-        address _sender,
-        uint256 _payment,
-        bytes32 _saId,
-        address _callbackAddress,
-        bytes4 _callbackFunctionId,
-        uint256 _nonce,
-        uint256,
-        bytes calldata _data
-    ) external onlyLINK checkCallbackAddress(_callbackAddress) {
-        uint256 totalPayment = serviceAgreements[_saId].totalPayment;
-        // this revert message does not bubble up
-        require(_payment >= totalPayment, "Insufficient payment");
-        bytes32 callbackRequestId = keccak256(abi.encodePacked(_sender, _nonce));
-        require(requesters[callbackRequestId].sender == address(0), "Nonce already in-use");
-        requesters[callbackRequestId].callbackFunctionId = _callbackFunctionId;
-        requesters[callbackRequestId].callbackAddress = _callbackAddress;
-        requesters[callbackRequestId].sender = _sender;
-        createRequests(_saId, callbackRequestId, _data);
-        if (_payment > totalPayment) {
-            uint256 overage = _payment.sub(totalPayment);
-            LinkTokenInterface _link = LinkTokenInterface(chainlinkTokenAddress());
-            assert(_link.transfer(_sender, overage));
-        }
     }
 
     /**
