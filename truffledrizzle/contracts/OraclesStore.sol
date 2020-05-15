@@ -10,6 +10,10 @@ contract OraclesStore {
     // also hosts the random value used for retrieval
     // stores a list of oracles per jobType
     // gotta define defaults from Job Specs -> is done on External Adapter
+    // external adapter link https://market.link/v1/search/nodes?sortOrder=desc&verified=true&networkId=3&size=1000
+    // make sure to set correct networkId on deployment, Ropsten is networkId 3, Mainnet is 1
+    /**
+     */
     // nodes using the EA can propose changes through several calls
     // adding oracle
     // removing oracle

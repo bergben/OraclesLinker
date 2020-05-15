@@ -3,7 +3,6 @@ pragma solidity >=0.5.17;
 import "@chainlink/contracts/src/v0.5/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.5/LinkTokenReceiver.sol";
 import "@chainlink/contracts/src/v0.5/Median.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./OraclesLink.sol";
 import "./OraclesSelector.sol";
 import "./OraclesLinkAggregator.sol";
@@ -15,10 +14,21 @@ import "./OraclesLinkAggregator.sol";
  * @dev This contract accepts requests as service agreement IDs and loops over
  * the corresponding list of oracles to create distinct requests to each one.
  */
-contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesSelector, OraclesLinkAggregator {
+contract OraclesLinker is ChainlinkClient, LinkTokenReceiver, OraclesSelector, OraclesLinkAggregator {
     using SafeMath for uint256;
 
     uint256 private constant MAX_TOTAL_LEVEL_REQUESTS = 21;
+
+    /**
+     * @notice Creates an OraclesLink Int256 request that can hold additional parameters
+     * @param _callbackAddress The callback address that the response will be sent to
+     * @param _callbackFunctionSignature The callback function signature to use for the callback address
+     * @return An OraclesLink Int256 struct in memory
+     */
+    function buildInt256Link(address _callbackAddress, bytes4 _callbackFunctionSignature) internal pure returns (OraclesLink.Int256 memory) {
+        OraclesLink.Int256 memory req;
+        return req.initialize(_callbackAddress, _callbackFunctionSignature);
+    }
 
     function getInt256Link(
         string memory _url,
@@ -26,56 +36,13 @@ contract OraclesLinker is ChainlinkClient, Ownable, LinkTokenReceiver, OraclesSe
         uint256 memory times,
         OraclesLink.Requirements memory _requirements
     ) internal onlyLINK checkCallbackAddress(_callbackAddress) onlyValidRequirements(_requirements) returns (bytes32 oraclesLinkId) {
-        // Todo: Payment with transferAndCall compatibility, implement similar to how in PreCoordinator and adapt from LinkTokenReceiver.
-        // select random oracle for requirements
-
-        // loop over the selection method and aggregate the oracles in arrays
-        address[] oracleAddresses;
-        bytes32[] jobIds;
-        uint256[] payments;
-        uint256[] alreadySelected;
-        uint256 totalOracles = 0;
-
-        // select senior nodes
-        for (uint256 i = 0; i < _requirements.seniorOraclesCount; i++) {
-            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
-                OraclesLink.JobType.HttpGetInt256,
-                OraclesLink.OraclesLevel.Senior,
-                totalOracles,
-                alreadySelected
-            );
-            totalOracles++;
-        }
-        delete alreadySelected;
-
-        // select mature nodes
-        for (uint256 i = 0; i < _requirements.matureOraclesCount; i++) {
-            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
-                OraclesLink.JobType.HttpGetInt256,
-                OraclesLink.OraclesLevel.Mature,
-                totalOracles,
-                alreadySelected
-            );
-            totalOracles++;
-        }
-        delete alreadySelected;
-
-        // select novice nodes
-        for (uint256 i = 0; i < _requirements.noviceOraclesCount; i++) {
-            (oracleAddresses[totalOracles], jobIds[totalOracles], payments[totalOracles], alreadySelected[i]) = OraclesSelector.select(
-                OraclesLink.JobType.HttpGetInt256,
-                OraclesLink.OraclesLevel.Novice,
-                totalOracles,
-                alreadySelected
-            );
-            totalOracles++;
-        }
-        delete alreadySelected;
-
-        // send out requests
-        createRequests();
+        // Todo: Payment with transferAndCall compatibility, implement similar to how in PreCoordinator and adapt from LinkTokenReceiver. ? necessary??
+        // Todo: add requirement -> there have to be this many oracles available for a certain jobType / level
+        // Todo: I might need global nonce when creating a certain OraclesLinkId, see PreCoordinator
+        // Todo: add OraclesCoordinator which does this, which in turn is an Aggregator with rounds!
+        // OraclesLinker instead is the one that aggregates everything in the end, maybes using OraclesLinkAggregator
+        // Aggregation here from sources is easy, without rounds
         // return oraclesLinkId? (or requestIds?)
-        // todo add requirement -> there have to be this many oracles available for a certain jobType / level
     }
 
     function createOraclesLinkRequirements(
