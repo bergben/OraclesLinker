@@ -7,7 +7,10 @@ import "./WhitelistedProposalsCoordinator.sol";
  * @title WhitelistedProposalsAggregator is a contract which allows white listed addresses to propose changes to stored oracles
  */
 contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordinator {
-    bytes32[] internal approvedProposals;
+    bytes32[] internal approvedAddOracleKeys;
+    bytes32[] internal approvedRemoveOracleKeys;
+    bytes32[] internal approvedAddJobKeys;
+    bytes32[] internal approvedRemoveJobKeys;
 
     /**
      * overriden from parent contract
@@ -24,7 +27,18 @@ contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordinator {
             if (proposalSupporters[key].length < minProposalSupporters) {
                 removeProposalMappings(key);
             } else {
-                approvedProposals.push(key);
+                if (proposalOperations[key] == ProposalOperation.AddOracle) {
+                    approvedAddOracleKeys.push(key);
+                }
+                if (proposalOperations[key] == ProposalOperation.RemoveOracle) {
+                    approvedRemoveOracleKeys.push(key);
+                }
+                if (proposalOperations[key] == ProposalOperation.AddJob) {
+                    approvedAddJobKeys.push(key);
+                }
+                if (proposalOperations[key] == ProposalOperation.RemoveJob) {
+                    approvedRemoveJobKeys.push(key);
+                }
             }
         }
         delete proposalHashes;

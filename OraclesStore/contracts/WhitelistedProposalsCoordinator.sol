@@ -7,7 +7,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 /**
  * @title WhitelistedProposalsCoordinator is a contract which handles proposals for oracle changes in rounds from whitelisted externals
  */
-contract WhitelistedProposalsCoordinator is WhiteListed {
+contract WhitelistedProposalsCoordinator is Whitelisted {
     using SafeMath for uint256;
     enum ProposalOperation {AddOracle, RemoveOracle, AddJob, RemoveJob}
 
@@ -121,12 +121,12 @@ contract WhitelistedProposalsCoordinator is WhiteListed {
      * Called from whitelisted externals to force stop a round after a given time
      * current Timestamp in milliseconds
      */
-    function forceStopRound(uint256 _currentTimestamp)
-        external
-        onlyWhitelisted()
-        roundRunning()
-        minutesPassedSinceRoundStart(_currentTimestamp, minPassedMinutesToForceStop)
-    {
+    function forceStopRound(uint256 _currentTimestamp) external onlyWhitelisted() roundRunning() {
+        // minutes are converted to milliseconds
+        require(
+            lastRoundStartTimestamp.add((uint256(minPassedMinutesToForceStop).mul(60)).mul(1000)) > _currentTimestamp,
+            "Not enough time has passed yet to fource round end"
+        );
         triggerEndRound();
     }
 
@@ -174,15 +174,6 @@ contract WhitelistedProposalsCoordinator is WhiteListed {
 
     modifier roundNotRunning() {
         require(!isRoundRunning, "Round is running");
-        _;
-    }
-
-    modifier minutesPassedSinceRoundStart(uint256 _currentTimestamp, uint8 _minutes) {
-        // minutes are converted to milliseconds
-        require(
-            lastRoundStartTimestamp.add((_minutes.mul(60)).mul(1000)) > _currentTimestamp,
-            "Not enough time has passed yet to fource round end"
-        );
         _;
     }
 }
