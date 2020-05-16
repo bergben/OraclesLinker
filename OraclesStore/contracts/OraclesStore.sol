@@ -2,12 +2,13 @@ pragma solidity 0.6.8;
 /** SPDX-License-Identifier: MIT*/
 
 import "./WhitelistedProposalsAggregator.sol";
+import "./OraclesProviderInterface.sol";
 
 
 /**
  * @title OraclesStore is a contract which stores, updates and provides Chainlink Oracles
  */
-contract OraclesStore is WhitelistedProposalsAggregator {
+contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterface {
     enum OracleLevel {Novice, Mature, Senior}
     struct Job {
         bytes32 id;
@@ -60,6 +61,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
      */
     function oraclesCount(uint8 _level, bytes32 _jobType)
         external
+        override
         view
         isJobTypeExists(_jobType)
         isOracleLevelExists(_level)
@@ -77,6 +79,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         uint256 _index
     )
         external
+        override
         view
         isJobTypeExists(_jobType)
         isOracleLevelExists(_level)
@@ -104,7 +107,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         handleApprovedRemoveJobs();
         handleApprovedAddJobs();
         resetProposalsRound();
-        emit RoundHandled(lastRoundStartTimestamp)
+        emit RoundHandled(lastRoundStartTimestamp);
     }
 
     function handleApprovedRemoveOracles() private {
@@ -162,7 +165,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         oracleToLevel[oracleAddress] = oracleLevel;
         oracleExists[oracleAddress] = true;
 
-        emit OracleAdded(_oracleAddress);
+        emit OracleAdded(oracleAddress);
     }
 
     function removeJob(address _oracleAddress, bytes32 _id) private {
