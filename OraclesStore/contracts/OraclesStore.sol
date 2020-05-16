@@ -47,8 +47,45 @@ contract OraclesStore is WhitelistedProposalsAggregator {
     // mapping oracle => all assigned jobIds
     mapping(address => bytes32[]) private oracleToJobIds;
 
-    // mapping hash or oracle and jobId to index in the array of the mapping oracleToJobIds
+    // mapping hash of oracle and jobId to index in the array of the mapping oracleToJobIds
     mapping(bytes32 => uint256) private oracleAndJobIdToIndex;
+
+    /**
+     * Used by external RandomOraclePicker
+     */
+    function oraclesCount(uint8 _level, bytes32 _jobType)
+        external
+        view
+        isJobTypeExists(_jobType)
+        isOracleLevelExists(_level)
+        returns (uint256 count)
+    {
+        return levelAndJobTypeToOracles[_level][_jobType].length;
+    }
+
+    /**
+     * Used by external RandomOraclePicker
+     */
+    function oracleAtIndex(
+        uint8 _level,
+        bytes32 _jobType,
+        uint256 _index
+    )
+        external
+        view
+        isJobTypeExists(_jobType)
+        isOracleLevelExists(_level)
+        returns (
+            address oracleAddress,
+            bytes32 id,
+            uint256 cost
+        )
+    {
+        address[] storage oracles = levelAndJobTypeToOracles[_level][_jobType];
+        require(_index >= 0 && _index < oracles.length, "Index out of bounds");
+        Job storage job = oracleAndJobTypeToJob[oracles[_index]][_jobType];
+        return (oracles[_index], job.id, job.cost);
+    }
 
     function addJobType(bytes32 jobType) external onlyOwner() {
         require(!jobTypeExists[jobType], "Job type already exists");
@@ -96,9 +133,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         }
     }
 
-    function removeOracle(address _oracleAddress) private {
-        require(oracleExists[_oracleAddress], "Oracle does not exist");
-
+    function removeOracle(address _oracleAddress) private isOracleExists(_oracleAddress) {
         // remove all assigned jobs
         bytes32[] storage assignedJobIds = oracleToJobIds[_oracleAddress];
         for (uint256 i = 0; i < assignedJobIds.length; i++) {
@@ -109,12 +144,11 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         delete oracleToLevel[_oracleAddress];
     }
 
-    function addOracle(AddOracleProposal storage _addOracleProposal) private {
+    function addOracle(AddOracleProposal storage _addOracleProposal) private isOracleLevelExists(_addOracleProposal.level) {
         require(!oracleExists[_addOracleProposal.oracleAddress], "Oracle already exists");
 
         address oracleAddress = _addOracleProposal.oracleAddress;
 
-        require(_addOracleProposal.level >= 0 && _addOracleProposal.level <= 2, "Invalid oracle level");
         OracleLevel oracleLevel = castUint8LevelToEnum(_addOracleProposal.level);
 
         oracleToLevel[oracleAddress] = oracleLevel;
@@ -159,10 +193,12 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         delete jobExists[_id];
     }
 
-    function addJob(AddJobProposal storage _addJobProposal) private {
+    function addJob(AddJobProposal storage _addJobProposal)
+        private
+        isJobTypeExists(_addJobProposal.jobType)
+        isOracleExists(_addJobProposal.oracleAddress)
+    {
         require(!jobExists[_addJobProposal.id], "Job already exists");
-        require(jobTypeExists[_addJobProposal.jobType], "Job Type does not exist");
-        require(oracleExists[_addJobProposal.oracleAddress], "Oracle does not exist");
 
         address oracleAddress = _addJobProposal.oracleAddress;
         bytes32 jobType = _addJobProposal.jobType;
@@ -210,5 +246,20 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         } else {
             return OracleLevel.Senior;
         }
+    }
+
+    modifier isOracleLevelExists(uint8 _level) {
+        require(_level >= 0 && _level <= 2, "Invalid oracle level");
+        _;
+    }
+
+    modifier isOracleExists(address _oracleAddress) {
+        require(oracleExists[_oracleAddress], "Oracle does not exist");
+        _;
+    }
+
+    modifier isJobTypeExists(bytes32 _jobType) {
+        require(jobTypeExists[_jobType], "Job Type does not exist");
+        _;
     }
 }
