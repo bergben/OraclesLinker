@@ -1,12 +1,13 @@
 pragma solidity >=0.5.17;
 
-import "./Whitelisted.sol";
+import "./WhitelistedProposalsAggregator.sol";
+import "./RandomOraclesSelector.sol";
 
 
 /**
  * @title OraclesStore is a contract which stores, updates and provides Chainlink Oracles
  */
-contract OraclesStore is ProposalsAggregator {
+contract OraclesStore is WhitelistedProposalsAggregator, RandomOraclesSelector {
     struct Job {
         bytes32 id;
         uint256 cost;
@@ -34,17 +35,37 @@ contract OraclesStore is ProposalsAggregator {
         emit JobTypeAdded(bytes32);
     }
 
-    function addJobToOracle(
-        address _oracleAddress,
-        bytes32 _id,
-        bytes32 _jobType,
-        uint256 _cost
-    ) private {
+    /**
+     * overrides method triggered from child contract on round end after proposals clean up
+     */
+    function onProposalsAggregated() internal {
+        for (uint256 i = 0; i < approvedProposals.length; i++) {
+            bytes32 key = approvedProposals[i];
+            if (proposalOperations[key] == ProposalOperation.AddOracle) {
+                addOracle(addOracleProposals[key]);
+            }
+            if (proposalOperations[key] == ProposalOperation.RemoveOracle) {
+                removeOracle(removeOracleProposals[key]);
+            }
+            if (proposalOperations[key] == ProposalOperation.AddJob) {
+                addJob(addJobProposals[key]);
+            }
+            if (proposalOperations[key] == ProposalOperation.RemoveJob) {
+                removeJob(removeJobProposals[key]);
+            }
+        }
+    }
+
+    function addOracle(AddOracleProposal _addOracleProposal) private {}
+
+    function removeOracle(address _oracleAddress) private {}
+
+    function addJob(AddJobProposal _addJobProposal) private {
         // requirement only valid job types
         // requirement oracleAddress must exist not at proposal though.
     }
 
-    function removeJobFromOracle(address _oracleAddress, bytes32 _id) private {
+    function removeJob(RemoveJobProposal _removeJobProposal) private {
         // requirement only valid job types
         // requirement oracleAddress must exist
         // requirement jobId must exist
