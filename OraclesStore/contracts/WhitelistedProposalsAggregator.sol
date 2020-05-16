@@ -1,4 +1,5 @@
-pragma solidity >=0.5.17;
+pragma solidity 0.6.8;
+/** SPDX-License-Identifier: MIT*/
 
 import "./WhitelistedProposalsCoordinator.sol";
 
@@ -6,21 +7,18 @@ import "./WhitelistedProposalsCoordinator.sol";
 /**
  * @title WhitelistedProposalsAggregator is a contract which allows white listed addresses to propose changes to stored oracles
  */
-contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordinator {
+abstract contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordinator {
     bytes32[] internal approvedAddOracleKeys;
     bytes32[] internal approvedRemoveOracleKeys;
     bytes32[] internal approvedAddJobKeys;
     bytes32[] internal approvedRemoveJobKeys;
 
-    /**
-     * overriden from parent contract
-     */
-    function onProposalsAggregated() internal;
+    function onProposalsAggregated() internal virtual;
 
     /**
      * overrides method triggered from child contract on round end
      */
-    function onRoundEnd() internal {
+    function onRoundEnd() internal override {
         // filter out the proposals that do not have enough supporters
         for (uint256 i = 0; i < proposalHashes.length; i++) {
             bytes32 key = proposalHashes[i];

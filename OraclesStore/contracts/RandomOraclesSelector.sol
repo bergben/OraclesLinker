@@ -1,5 +1,7 @@
-pragma solidity >=0.5.17;
+pragma solidity 0.6.8;
 
+
+/** SPDX-License-Identifier: MIT*/
 
 /**
  * @title RandomOraclesSelector is a contract which automatically picks oracles at random

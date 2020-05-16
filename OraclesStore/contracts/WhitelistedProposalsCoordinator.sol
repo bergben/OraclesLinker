@@ -1,4 +1,5 @@
-pragma solidity >=0.5.17;
+pragma solidity 0.6.8;
+/** SPDX-License-Identifier: MIT*/
 
 import "./Whitelisted.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -7,7 +8,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 /**
  * @title WhitelistedProposalsCoordinator is a contract which handles proposals for oracle changes in rounds from whitelisted externals
  */
-contract WhitelistedProposalsCoordinator is Whitelisted {
+abstract contract WhitelistedProposalsCoordinator is Whitelisted {
     using SafeMath for uint256;
     enum ProposalOperation {AddOracle, RemoveOracle, AddJob, RemoveJob}
 
@@ -51,10 +52,7 @@ contract WhitelistedProposalsCoordinator is Whitelisted {
     mapping(bytes32 => AddJobProposal) internal addJobProposals;
     mapping(bytes32 => RemoveJobProposal) internal removeJobProposals;
 
-    /**
-     * overriden from parent contract
-     */
-    function onRoundEnd() internal;
+    function onRoundEnd() internal virtual;
 
     function setMinProposalSupporters(uint8 _min) external onlyOwner {
         minProposalSupporters = _min;
