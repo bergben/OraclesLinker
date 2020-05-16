@@ -61,4 +61,11 @@ abstract contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordina
 
         delete proposalOperations[key];
     }
+
+    function resetProposalsRound() internal {
+        delete approvedAddOracleKeys;
+        delete approvedRemoveOracleKeys;
+        delete approvedAddJobKeys;
+        delete approvedRemoveJobKeys;
+    }
 }
