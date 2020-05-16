@@ -2,13 +2,12 @@ pragma solidity 0.6.8;
 /** SPDX-License-Identifier: MIT*/
 
 import "./WhitelistedProposalsAggregator.sol";
-import "./RandomOraclesSelector.sol";
 
 
 /**
  * @title OraclesStore is a contract which stores, updates and provides Chainlink Oracles
  */
-contract OraclesStore is WhitelistedProposalsAggregator, RandomOraclesSelector {
+contract OraclesStore is WhitelistedProposalsAggregator {
     enum OracleLevel {Novice, Mature, Senior}
     struct Job {
         bytes32 id;
