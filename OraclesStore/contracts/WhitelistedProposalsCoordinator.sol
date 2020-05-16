@@ -142,8 +142,8 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             lastRoundStartTimestamp.add((uint256(minPassedMinutesToForceStop).mul(60)).mul(1000)) > currentTimestamp,
             "Not enough time has passed yet to fource round end"
         );
-        triggerEndRound(_currentTimestamp);
-        emit RoundForceStopped(msg.sender, _currentTimestamp, lastRoundStartTimestamp);
+        triggerEndRound(currentTimestamp);
+        emit RoundForceStopped(msg.sender, currentTimestamp, lastRoundStartTimestamp);
     }
 
     /**

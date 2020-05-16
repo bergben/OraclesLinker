@@ -5,6 +5,7 @@ pragma solidity 0.6.8;
 
 interface OraclesProviderInterface {
     enum OracleLevel {Novice, Mature, Senior}
+
     /**
      * Used by external RandomOraclePicker
      */
@@ -25,4 +26,8 @@ interface OraclesProviderInterface {
             bytes32 id,
             uint256 cost
         );
+
+    function castUint8LevelToEnum(uint8 _level) external pure returns (OracleLevel);
+
+    function castLevelEnumToUint8(OracleLevel _level) external pure returns (uint8);
 }

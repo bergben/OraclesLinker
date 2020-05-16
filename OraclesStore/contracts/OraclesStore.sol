@@ -241,7 +241,7 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
         emit JobAdded(oracleAddress, jobId, jobType, _addJobProposal.cost);
     }
 
-    function castLevelEnumToUint8(OracleLevel _level) private pure returns (uint8) {
+    function castLevelEnumToUint8(OracleLevel _level) public override pure returns (uint8) {
         if (_level == OracleLevel.Novice) {
             return 0;
         }
@@ -252,7 +252,7 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
         }
     }
 
-    function castUint8LevelToEnum(uint8 _level) private pure returns (OracleLevel) {
+    function castUint8LevelToEnum(uint8 _level) public override pure returns (OracleLevel) {
         if (_level == 0) {
             return OracleLevel.Novice;
         }
