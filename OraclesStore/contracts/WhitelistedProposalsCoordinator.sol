@@ -12,11 +12,20 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
     using SafeMath for uint256;
     enum ProposalOperation {AddOracle, RemoveOracle, AddJob, RemoveJob}
 
+    event ProposalReceived(address sender, bytes32 proposalHash);
+    event MinProposalSupportersChanged(uint8 minSupporters);
+    event MinPassedMinutesToForceStopChanged(uint8 minMinutes);
+    event RoundStarted(address sender, uint256 currentTimestamp);
+    event RoundEnded(address sender, uint256 currentTimestamp);
+    event RoundForceStopped(address sender, uint256 currentTimestamp, uint256 roundStartTimestamp);
+    event StartRoundProposed(address sender, uint256 currentTimestamp);
+    event EndRoundProposed(address sender, uint256 currentTimestamp);
+
     uint8 internal minProposalSupporters;
     address[] private startRoundProposals;
     address[] private endRoundProposals;
     bool private isRoundRunning;
-    uint256 private lastRoundStartTimestamp;
+    uint256 internal lastRoundStartTimestamp;
     uint8 private minPassedMinutesToForceStop;
 
     struct AddOracleProposal {
@@ -56,10 +65,12 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
 
     function setMinProposalSupporters(uint8 _min) external onlyOwner {
         minProposalSupporters = _min;
+        emit MinProposalSupportersChanged(_min);
     }
 
     function setMinPassedMinutesToForceStop(uint8 _min) external onlyOwner {
         minPassedMinutesToForceStop = _min;
+        emit MinPassedMinutesToForceStopChanged(_min);
     }
 
     function proposeAddOracle(address _oracleAddress, uint8 _level) external onlyWhitelisted() roundRunning() {
@@ -72,6 +83,7 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             proposalOperations[proposalHash] = ProposalOperation.AddOracle;
             addOracleProposals[proposalHash] = AddOracleProposal(_oracleAddress, _level);
         }
+        emit ProposalReceived(msg.sender, proposalHash);
     }
 
     function proposeRemoveOracle(address _oracleAddress) external onlyWhitelisted() roundRunning() {
@@ -84,6 +96,7 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             proposalOperations[proposalHash] = ProposalOperation.RemoveOracle;
             removeOracleProposals[proposalHash] = _oracleAddress;
         }
+        emit ProposalReceived(msg.sender, proposalHash);
     }
 
     function proposeAddJob(
@@ -101,6 +114,7 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             proposalOperations[proposalHash] = ProposalOperation.AddJob;
             addJobProposals[proposalHash] = AddJobProposal(_oracleAddress, _id, _jobType, _cost);
         }
+        emit ProposalReceived(msg.sender, proposalHash);
     }
 
     function proposeRemoveJob(address _oracleAddress, bytes32 _id) external onlyWhitelisted() roundRunning() {
@@ -113,6 +127,7 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             proposalOperations[proposalHash] = ProposalOperation.RemoveJob;
             removeJobProposals[proposalHash] = RemoveJobProposal(_oracleAddress, _id);
         }
+        emit ProposalReceived(msg.sender, proposalHash);
     }
 
     /**
@@ -125,7 +140,8 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
             lastRoundStartTimestamp.add((uint256(minPassedMinutesToForceStop).mul(60)).mul(1000)) > _currentTimestamp,
             "Not enough time has passed yet to fource round end"
         );
-        triggerEndRound();
+        triggerEndRound(_currentTimestamp);
+        emit RoundForceStopped(msg.sender, _currentTimestamp, lastRoundStartTimestamp);
     }
 
     /**
@@ -136,23 +152,29 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
         if (startRoundProposals.length > minProposalSupporters) {
             triggerStartRound(_currentTimestamp);
         }
+        emit StartRoundProposed(msg.sender, _currentTimestamp);
     }
 
     /**
      * current Timestamp in milliseconds
      */
-    function proposeEndRound() external onlyWhitelisted() roundRunning() {
+    function proposeEndRound(uint256 _currentTimestamp) external onlyWhitelisted() roundRunning() {
         endRoundProposals.push(msg.sender);
         if (endRoundProposals.length > minProposalSupporters) {
-            triggerEndRound();
+            triggerEndRound(_currentTimestamp);
         }
+        emit EndRoundProposed(msg.sender, _currentTimestamp);
     }
 
-    function triggerEndRound() private {
+    /**
+     * current Timestamp in milliseconds
+     */
+    function triggerEndRound(uint256 _currentTimestamp) private {
         // reset endRoundProposals
         delete endRoundProposals;
         isRoundRunning = false;
         onRoundEnd();
+        emit RoundEnded(msg.sender, _currentTimestamp);
     }
 
     /**
@@ -163,6 +185,7 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
         delete startRoundProposals;
         isRoundRunning = true;
         lastRoundStartTimestamp = _currentTimestamp;
+        emit RoundStarted(msg.sender, _currentTimestamp);
     }
 
     modifier roundRunning() {

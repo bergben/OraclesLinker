@@ -13,6 +13,8 @@ abstract contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordina
     bytes32[] internal approvedAddJobKeys;
     bytes32[] internal approvedRemoveJobKeys;
 
+    event ProposalsAggregated(uint256 roundStartTimestamp);
+
     function onProposalsAggregated() internal virtual;
 
     /**
@@ -41,6 +43,7 @@ abstract contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordina
         }
         delete proposalHashes;
         onProposalsAggregated();
+        emit ProposalsAggregated(lastRoundStartTimestamp);
     }
 
     function removeProposalMappings(bytes32 key) internal {

@@ -15,7 +15,12 @@ contract OraclesStore is WhitelistedProposalsAggregator {
     }
 
     // todo add events
-    event JobTypeAdded(bytes32);
+    event JobTypeAdded(bytes32 jobType);
+    event OracleAdded(address oracleAddress);
+    event OracleRemoved(address oracleAddress);
+    event JobAdded(address oracleAddress, bytes32 jobId, bytes32 jobType, uint256 cost);
+    event JobRemoved(address oracleAddress, bytes32 jobId);
+    event RoundHandled(uint256 roundStartTimestamp);
 
     // mapping oracleAddress => level
     mapping(address => OracleLevel) private oracleToLevel;
@@ -99,6 +104,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         handleApprovedRemoveJobs();
         handleApprovedAddJobs();
         resetProposalsRound();
+        emit RoundHandled(lastRoundStartTimestamp)
     }
 
     function handleApprovedRemoveOracles() private {
@@ -142,6 +148,8 @@ contract OraclesStore is WhitelistedProposalsAggregator {
 
         delete oracleExists[_oracleAddress];
         delete oracleToLevel[_oracleAddress];
+
+        emit OracleRemoved(_oracleAddress);
     }
 
     function addOracle(AddOracleProposal storage _addOracleProposal) private isOracleLevelExists(_addOracleProposal.level) {
@@ -153,6 +161,8 @@ contract OraclesStore is WhitelistedProposalsAggregator {
 
         oracleToLevel[oracleAddress] = oracleLevel;
         oracleExists[oracleAddress] = true;
+
+        emit OracleAdded(_oracleAddress);
     }
 
     function removeJob(address _oracleAddress, bytes32 _id) private {
@@ -191,6 +201,8 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         delete jobIdIndex;
 
         delete jobExists[_id];
+
+        emit JobRemoved(_oracleAddress, _id);
     }
 
     function addJob(AddJobProposal storage _addJobProposal)
@@ -224,6 +236,7 @@ contract OraclesStore is WhitelistedProposalsAggregator {
         oracleAndJobIdToIndex[jobIdsKey] = jobIds.length - 1;
 
         jobExists[jobId] = true;
+        emit JobAdded(oracleAddress, jobId, jobType, _addJobProposal.cost);
     }
 
     function castLevelEnumToUint8(OracleLevel _level) private pure returns (uint8) {
