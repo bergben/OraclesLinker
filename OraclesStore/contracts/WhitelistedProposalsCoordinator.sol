@@ -63,12 +63,12 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
 
     function onRoundEnd() internal virtual;
 
-    function setMinProposalSupporters(uint8 _min) external onlyOwner {
+    function setMinProposalSupporters(uint8 _min) external onlyOwner() {
         minProposalSupporters = _min;
         emit MinProposalSupportersChanged(_min);
     }
 
-    function setMinPassedMinutesToForceStop(uint8 _min) external onlyOwner {
+    function setMinPassedMinutesToForceStop(uint8 _min) external onlyOwner() {
         minPassedMinutesToForceStop = _min;
         emit MinPassedMinutesToForceStopChanged(_min);
     }
@@ -134,10 +134,12 @@ abstract contract WhitelistedProposalsCoordinator is Whitelisted {
      * Called from whitelisted externals to force stop a round after a given time
      * current Timestamp in milliseconds
      */
-    function forceStopRound(uint256 _currentTimestamp) external onlyWhitelisted() roundRunning() {
+    function forceStopRound() external onlyWhitelisted() roundRunning() {
+        // safe to use here because tolerance by miner interference is +-30sec.
+        uint256 currentTimestamp = block.timestamp;
         // minutes are converted to milliseconds
         require(
-            lastRoundStartTimestamp.add((uint256(minPassedMinutesToForceStop).mul(60)).mul(1000)) > _currentTimestamp,
+            lastRoundStartTimestamp.add((uint256(minPassedMinutesToForceStop).mul(60)).mul(1000)) > currentTimestamp,
             "Not enough time has passed yet to fource round end"
         );
         triggerEndRound(_currentTimestamp);

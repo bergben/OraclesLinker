@@ -9,7 +9,6 @@ import "./OraclesProviderInterface.sol";
  * @title OraclesStore is a contract which stores, updates and provides Chainlink Oracles
  */
 contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterface {
-    enum OracleLevel {Novice, Mature, Senior}
     struct Job {
         bytes32 id;
         uint256 cost;

@@ -4,6 +4,7 @@ pragma solidity 0.6.8;
 /** SPDX-License-Identifier: MIT*/
 
 interface OraclesProviderInterface {
+    enum OracleLevel {Novice, Mature, Senior}
     /**
      * Used by external RandomOraclePicker
      */
