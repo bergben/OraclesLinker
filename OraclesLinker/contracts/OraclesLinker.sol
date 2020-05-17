@@ -1,6 +1,7 @@
 pragma solidity 0.6.8;
 
 import "oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol";
+
 import "./OraclesLinkInt256.sol";
 import "./RandomOraclesProviderHost.sol";
 import "./OraclesLinksHandler.sol";
@@ -14,6 +15,8 @@ import "./OraclesLinksHandler.sol";
 contract OraclesLinker is OraclesLinksHandler, RandomOraclesProviderHost {
     using OraclesLinkInt256 for OraclesLinkInt256.Request;
 
+    uint8 private constant MAX_TOTAL_LEVEL_REQUESTS = 21;
+
     function buildOraclesLinkInt256(
         uint8 _sources,
         address _callbackAddress,
@@ -23,10 +26,51 @@ contract OraclesLinker is OraclesLinksHandler, RandomOraclesProviderHost {
         return req.initialize(_sources, _callbackAddress, _callbackFunctionSignature);
     }
 
-    function sendOraclesLinkInt256(OraclesLinkInt256.Request memory req, uint256 _payment) internal returns (bytes32 oraclesLinkId) {
+    function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req, uint256 _payment)
+        internal
+        returns (
+            // onlyValidRequirements(_req.base.requirements)
+            bytes32 oraclesLinkId
+        )
+    {
         bytes32 seed;
         (oraclesLinkId, seed) = addOraclesLink();
 
+        bytes32 jobType = "HttpGetInt256";
+        sendOraclesLink(_req, _payment, seed, jobType);
+
         return oraclesLinkId;
+    }
+
+    function sendOraclesLink(
+        OraclesLinkInt256.Request memory _req,
+        uint256 _payment,
+        bytes32 _seed,
+        bytes32 _jobType
+    ) private {
+        // Todo: Payment with transferAndCall compatibility, implement similar to how in PreCoordinator and adapt from LinkTokenReceiver.
+        // Aggregation here from sources is easy, without rounds
+        // Todo: add requirement -> there have to be this many oracles available for a certain jobType / level
+
+        // senior oracles
+        uint256[] memory seniorOracleIndices = randomOraclesProvider.getRandomSeniorIndices(
+            _req.base.requirements.seniorOraclesCount,
+            _jobType,
+            _seed
+        );
+
+        // mature oracles
+        uint256[] memory matureOracleIndices = randomOraclesProvider.getRandomMatureIndices(
+            _req.base.requirements.seniorOraclesCount,
+            _jobType,
+            _seed
+        );
+
+        // novice oracles
+        uint256[] memory noviceOracleIndices = randomOraclesProvider.getRandomNoviceIndices(
+            _req.base.requirements.seniorOraclesCount,
+            _jobType,
+            _seed
+        );
     }
 }

@@ -1,6 +1,6 @@
 pragma solidity 0.6.8;
 
-import "./OraclesLink.sol";
+import "./OraclesLinkBase.sol";
 import "./Utils.sol";
 
 
@@ -10,7 +10,7 @@ import "./Utils.sol";
  * @title Library for Oracles Links for Int256
  */
 library OraclesLinkInt256 {
-    using OraclesLink for OraclesLink.Base;
+    using OraclesLinkBase for OraclesLinkBase.Base;
     enum AggregationMethod {Median, None}
 
     struct Source {
@@ -21,7 +21,7 @@ library OraclesLinkInt256 {
     }
 
     struct Request {
-        OraclesLink.Base base;
+        OraclesLinkBase.Base base;
         AggregationMethod aggregationMethod;
         Source[] sources;
     }

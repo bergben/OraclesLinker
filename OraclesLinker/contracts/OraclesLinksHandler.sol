@@ -28,6 +28,8 @@ contract OraclesLinksHandler {
         return (oraclesLinkId, seed);
     }
 
+    function setDefaultSecurityLevels() internal {}
+
     /**
      * @dev Reverts if the sender is not the RandomOraclesProvider handling the OraclesLink.
      * Emits OraclesLinkFulfilled event.
