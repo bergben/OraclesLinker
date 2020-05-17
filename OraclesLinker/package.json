@@ -1,0 +1,23 @@
+{
+  "name": "oracles-linker",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "prettier": "prettier --write **/*.sol",
+    "lint": "prettier --list-different **/*.sol",
+    "build": "truffle build",
+    "compile": "truffle compile",
+    "migrate": "truffle migrate",
+    "console": "truffle console",
+    "reset": "truffle migrate --reset"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "~3.0.1"
+  },
+  "devDependencies": {
+    "@truffle/contract": "^4.2.5",
+    "prettier": "~2.0.5",
+    "prettier-plugin-solidity": "~1.0.0-alpha.51",
+    "truffle": "~5.1.26"
+  }
+}
