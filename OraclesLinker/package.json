@@ -9,10 +9,13 @@
     "compile": "truffle compile",
     "migrate": "truffle migrate",
     "console": "truffle console",
-    "reset": "truffle migrate --reset"
+    "reset": "truffle migrate --reset",
+    "link": "npm link ../OraclesLinkProvider"
   },
   "dependencies": {
-    "openzeppelin-solidity": "~3.0.1"
+    "@chainlink/contracts": "0.0.3",
+    "openzeppelin-solidity": "~3.0.1",
+    "oracles-link-provider": "~0.0.1"
   },
   "devDependencies": {
     "@truffle/contract": "^4.2.5",

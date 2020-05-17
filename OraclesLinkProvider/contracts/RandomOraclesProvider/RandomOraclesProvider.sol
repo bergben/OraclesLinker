@@ -23,7 +23,7 @@ contract RandomOraclesProvider is Ownable, OraclesLinkProvider, RandomNumbersPro
         oraclesProviderAddress = _oraclesProviderAddress;
     }
 
-    function setOraclesStoreAddress(address _oraclesProviderAddress) external onlyOwner() {
+    function setOraclesProviderAddress(address _oraclesProviderAddress) external onlyOwner() {
         oraclesProviderAddress = _oraclesProviderAddress;
         emit OraclesProviderAddressSet(_oraclesProviderAddress);
     }

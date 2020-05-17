@@ -1,8 +1,10 @@
 pragma solidity >=0.5.17;
 
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/Ownable.sol";
 import "./OraclesLinker.sol"; // todo replace with npm
 
+
+/** SPDX-License-Identifier: MIT*/
 
 /**
  * @title SampleContract is an example contract which requests data from
@@ -12,13 +14,13 @@ import "./OraclesLinker.sol"; // todo replace with npm
  */
 contract SampleContract is OraclesLinker, Ownable {
     function triggerOraclesLink(uint256 _payment) public onlyOwner returns (bytes32 oraclesLinkId) {
-        // user builds request for multiple sources similar to how chainlink buildChainlinkRequest and then sendChainlinkRequestTo works
-        OraclesLink.Int256 memory oraclesLink = buildInt256Link(address(this), this.fulfill.selector);
+        // user builds oracles link for multiple sources similar to how chainlink buildChainlinkRequest and then sendChainlinkRequestTo works
+        OraclesLinkInt256.Request memory oraclesLink = oraclesLinkInt256(address(this), this.fulfill.selector);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.setAggregationMethod(AggregationMethod.Median);
-        oraclesLinkId = oraclesLink.sendRequest(_payment);
+        oraclesLinkId = oraclesLink.send(_payment);
         return oraclesLinkId;
     }
 
