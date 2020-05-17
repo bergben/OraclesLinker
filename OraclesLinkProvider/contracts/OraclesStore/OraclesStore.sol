@@ -14,7 +14,6 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
         uint256 cost;
     }
 
-    // todo add events
     event JobTypeAdded(bytes32 jobType);
     event OracleAdded(address oracleAddress);
     event OracleRemoved(address oracleAddress);
@@ -55,9 +54,6 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
     // mapping hash of oracle and jobId to index in the array of the mapping oracleToJobIds
     mapping(bytes32 => uint256) private oracleAndJobIdToIndex;
 
-    /**
-     * Used by external RandomOraclePicker
-     */
     function oraclesCount(uint8 _level, bytes32 _jobType)
         external
         override
@@ -69,9 +65,6 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
         return levelAndJobTypeToOracles[_level][_jobType].length;
     }
 
-    /**
-     * Used by external RandomOraclePicker
-     */
     function oracleAtIndex(
         uint8 _level,
         bytes32 _jobType,

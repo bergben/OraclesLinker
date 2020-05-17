@@ -18,14 +18,13 @@ contract RandomNumbersProvider {
         require(_max > _min, "max must be > min");
 
         bytes32 seed = keccak256(abi.encode(block.timestamp, _seed, _min, _max, _amount));
-
-        bool[] memory randomNumberExists;
+        randomNumbers = new uint256[](_amount);
 
         for (uint8 i = 0; i < _amount; i++) {
             uint256 randomNumber = getRandomNumberBetween(i, seed, _min, _max);
 
             // make sure numbers are unique
-            while (randomNumberExists[randomNumber]) {
+            while (isNumberInArray(randomNumber, randomNumbers)) {
                 randomNumber++;
                 // make sure number is not out of bounds
                 if (randomNumber > _max) {
@@ -36,6 +35,15 @@ contract RandomNumbersProvider {
         }
 
         return randomNumbers;
+    }
+
+    function isNumberInArray(uint256 number, uint256[] memory array) private pure returns (bool) {
+        for (uint8 i = 0; i < array.length; i++) {
+            if (array[i] == number) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getRandomNumberBetween(

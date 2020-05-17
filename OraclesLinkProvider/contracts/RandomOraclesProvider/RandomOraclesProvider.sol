@@ -1,9 +1,10 @@
 pragma solidity 0.6.8;
 
-import "../../OraclesStore/contracts/OraclesProviderInterface.sol"; // todo replace with npm import;
 import "openzeppelin-solidity/contracts/access/Ownable.sol";
 
+import "../OraclesStore/OraclesProviderInterface.sol";
 import "./RandomNumbersProvider.sol";
+import "./OraclesLinkProvider.sol";
 
 
 /** SPDX-License-Identifier: MIT*/
@@ -11,7 +12,7 @@ import "./RandomNumbersProvider.sol";
 /**
  * @title RandomOraclesProvider is a contract which provides randomly picked Chainlink oracles from the OraclesStore for a certain level and job type
  */
-contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
+contract RandomOraclesProvider is Ownable, OraclesLinkProvider, RandomNumbersProvider {
     event OraclesProviderAddressSet(address storeAddress);
     event RandomIndicesProvided(OraclesProviderInterface.OracleLevel level, bytes32 jobType, uint256[] randomIndices);
     event RandomOracleWithJobProvided(OraclesProviderInterface.OracleLevel level, bytes32 jobType, address oracleAddress, bytes32 jobId);
@@ -31,7 +32,7 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
         uint8 _amount,
         bytes32 _jobType,
         bytes32 _seed
-    ) external returns (uint256[] memory) {
+    ) external override returns (uint256[] memory) {
         return getRandomOracleIndices(OraclesProviderInterface.OracleLevel.Novice, _amount, _jobType, _seed);
     }
 
@@ -39,7 +40,7 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
         uint8 _amount,
         bytes32 _jobType,
         bytes32 _seed
-    ) external returns (uint256[] memory) {
+    ) external override returns (uint256[] memory) {
         return getRandomOracleIndices(OraclesProviderInterface.OracleLevel.Mature, _amount, _jobType, _seed);
     }
 
@@ -47,12 +48,13 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
         uint8 _amount,
         bytes32 _jobType,
         bytes32 _seed
-    ) external returns (uint256[] memory) {
+    ) external override returns (uint256[] memory) {
         return getRandomOracleIndices(OraclesProviderInterface.OracleLevel.Senior, _amount, _jobType, _seed);
     }
 
     function getNoviceOracleWithJob(uint256 _index, bytes32 _jobType)
         external
+        override
         returns (
             address,
             bytes32,
@@ -64,6 +66,7 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
 
     function getMatureOracleWithJob(uint256 _index, bytes32 _jobType)
         external
+        override
         returns (
             address,
             bytes32,
@@ -75,6 +78,7 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
 
     function getSeniorOracleWithJob(uint256 _index, bytes32 _jobType)
         external
+        override
         returns (
             address,
             bytes32,
