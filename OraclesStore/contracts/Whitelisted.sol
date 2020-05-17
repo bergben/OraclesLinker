@@ -9,7 +9,7 @@ import "openzeppelin-solidity/contracts/access/Ownable.sol";
  * @notice Allows the owner to add and remove addresses from a whitelist
  */
 contract Whitelisted is Ownable {
-    mapping(address => bool) public whitelisted;
+    mapping(address => bool) internal whitelisted;
 
     event AddedToWhitelist(address whiteListedAddress);
     event RemovedFromWhitelist(address whiteListedAddress);

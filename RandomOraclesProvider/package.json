@@ -5,7 +5,9 @@
   "scripts": {
     "prettier": "prettier --write **/*.sol",
     "lint": "prettier --list-different **/*.sol",
-    "build": "truffle build"
+    "build": "truffle build",
+    "compile": "truffle compile",
+    "migrate": "truffle migrate"
   },
   "dependencies": {
     "openzeppelin-solidity": "~3.0.1"

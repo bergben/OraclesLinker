@@ -94,10 +94,10 @@ contract OraclesStore is WhitelistedProposalsAggregator, OraclesProviderInterfac
         return (oracles[_index], job.id, job.cost);
     }
 
-    function addJobType(bytes32 jobType) external onlyOwner() {
-        require(!jobTypeExists[jobType], "Job type already exists");
-        jobTypeExists[jobType] = true;
-        emit JobTypeAdded(jobType);
+    function addJobType(bytes32 _jobType) external onlyOwner() {
+        require(!jobTypeExists[_jobType], "Job type already exists");
+        jobTypeExists[_jobType] = true;
+        emit JobTypeAdded(_jobType);
     }
 
     function onProposalsAggregated() internal override {

@@ -12,20 +12,19 @@ import "./RandomNumbersProvider.sol";
  * @title RandomOraclesProvider is a contract which provides randomly picked Chainlink oracles from the OraclesStore for a certain level and job type
  */
 contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
-    event OraclesStoreAddressSet(address storeAddress);
+    event OraclesProviderAddressSet(address storeAddress);
     event RandomIndicesProvided(OraclesProviderInterface.OracleLevel level, bytes32 jobType, uint256[] randomIndices);
     event RandomOracleWithJobProvided(OraclesProviderInterface.OracleLevel level, bytes32 jobType, address oracleAddress, bytes32 jobId);
 
-    address private oraclesStoreAddress;
-    OraclesProviderInterface private oraclesProvider;
+    address private oraclesProviderAddress;
 
-    constructor(address _oraclesStoreAddress) public {
-        oraclesStoreAddress = _oraclesStoreAddress;
+    constructor(address _oraclesProviderAddress) public {
+        oraclesProviderAddress = _oraclesProviderAddress;
     }
 
-    function setOraclesStoreAddress(address _oraclesStoreAddress) external onlyOwner() {
-        oraclesStoreAddress = _oraclesStoreAddress;
-        emit OraclesStoreAddressSet(_oraclesStoreAddress);
+    function setOraclesStoreAddress(address _oraclesProviderAddress) external onlyOwner() {
+        oraclesProviderAddress = _oraclesProviderAddress;
+        emit OraclesProviderAddressSet(_oraclesProviderAddress);
     }
 
     function getRandomNoviceIndices(
@@ -85,15 +84,20 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
         return getRandomOracleWithJob(OraclesProviderInterface.OracleLevel.Senior, _jobType, _index);
     }
 
+    function getOraclesProvider() private view returns (OraclesProviderInterface oraclesProvider) {
+        require(oraclesProviderAddress != address(0), "oraclesProviderAddress must be set");
+        return OraclesProviderInterface(oraclesProviderAddress);
+    }
+
     function getRandomOracleIndices(
         OraclesProviderInterface.OracleLevel _level,
         uint8 _amount,
         bytes32 _jobType,
         bytes32 _seed
     ) private returns (uint256[] memory indices) {
-        uint8 oracleLevel = oraclesProvider.castLevelEnumToUint8(_level);
+        uint8 oracleLevel = getOraclesProvider().castLevelEnumToUint8(_level);
 
-        uint256 oraclesMaxIndex = oraclesProvider.oraclesCount(oracleLevel, _jobType) - 1;
+        uint256 oraclesMaxIndex = getOraclesProvider().oraclesCount(oracleLevel, _jobType) - 1;
         require(oraclesMaxIndex >= 0, "No oracle available");
 
         indices = getRandomNumbersBetween(_amount, _seed, 0, oraclesMaxIndex);
@@ -115,9 +119,9 @@ contract RandomOraclesProvider is Ownable, RandomNumbersProvider {
             uint256 cost
         )
     {
-        uint8 oracleLevel = oraclesProvider.castLevelEnumToUint8(_level);
+        uint8 oracleLevel = getOraclesProvider().castLevelEnumToUint8(_level);
 
-        (oracleAddress, jobId, cost) = oraclesProvider.oracleAtIndex(oracleLevel, _jobType, _index);
+        (oracleAddress, jobId, cost) = getOraclesProvider().oracleAtIndex(oracleLevel, _jobType, _index);
         emit RandomOracleWithJobProvided(_level, _jobType, oracleAddress, jobId);
 
         return (oracleAddress, jobId, cost);

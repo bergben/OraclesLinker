@@ -42,8 +42,8 @@ abstract contract WhitelistedProposalsAggregator is WhitelistedProposalsCoordina
             }
         }
         delete proposalHashes;
-        onProposalsAggregated();
         emit ProposalsAggregated(lastRoundStartTimestamp);
+        onProposalsAggregated();
     }
 
     function removeProposalMappings(bytes32 key) internal {

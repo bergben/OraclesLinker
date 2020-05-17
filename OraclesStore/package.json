@@ -5,12 +5,18 @@
   "scripts": {
     "prettier": "prettier --write **/*.sol",
     "lint": "prettier --list-different **/*.sol",
-    "build": "truffle build"
+    "build": "truffle build",
+    "compile": "truffle compile",
+    "migrate": "truffle migrate",
+    "console": "truffle console",
+    "reset": "truffle migrate --reset",
+    "seed": "npm run reset && truffle exec ./development/truffleSeed.js"
   },
   "dependencies": {
     "openzeppelin-solidity": "~3.0.1"
   },
   "devDependencies": {
+    "@truffle/contract": "^4.2.5",
     "prettier": "~2.0.5",
     "prettier-plugin-solidity": "~1.0.0-alpha.51",
     "truffle": "~5.1.26"
