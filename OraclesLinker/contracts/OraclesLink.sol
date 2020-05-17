@@ -1,7 +1,5 @@
 pragma solidity 0.6.8;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-
 
 /** SPDX-License-Identifier: MIT*/
 
@@ -21,37 +19,37 @@ library OraclesLink {
 
     // solidity does not support constant structs as of version 0.6.8
     // immutable structs can only be created in non-libraries
-    uint8 constant SL_MIN_totalMinResponses = 1;
-    uint8 constant SL_MIN_seniorOraclesCount = 1;
-    uint8 constant SL_MIN_seniorMinResponses = 1;
-    uint8 constant SL_MIN_matureOraclesCount = 0;
-    uint8 constant SL_MIN_matureMinResponses = 0;
-    uint8 constant SL_MIN_noviceOraclesCount = 0;
-    uint8 constant SL_MIN_noviceMinResponses = 0;
+    uint8 private constant SL_MIN_totalMinResponses = 1;
+    uint8 private constant SL_MIN_seniorOraclesCount = 1;
+    uint8 private constant SL_MIN_seniorMinResponses = 1;
+    uint8 private constant SL_MIN_matureOraclesCount = 0;
+    uint8 private constant SL_MIN_matureMinResponses = 0;
+    uint8 private constant SL_MIN_noviceOraclesCount = 0;
+    uint8 private constant SL_MIN_noviceMinResponses = 0;
 
-    uint8 constant SL_LOW_totalMinResponses = 1;
-    uint8 constant SL_LOW_seniorOraclesCount = 1;
-    uint8 constant SL_LOW_seniorMinResponses = 1;
-    uint8 constant SL_LOW_matureOraclesCount = 1;
-    uint8 constant SL_LOW_matureMinResponses = 0;
-    uint8 constant SL_LOW_noviceOraclesCount = 0;
-    uint8 constant SL_LOW_noviceMinResponses = 0;
+    uint8 private constant SL_LOW_totalMinResponses = 1;
+    uint8 private constant SL_LOW_seniorOraclesCount = 1;
+    uint8 private constant SL_LOW_seniorMinResponses = 1;
+    uint8 private constant SL_LOW_matureOraclesCount = 1;
+    uint8 private constant SL_LOW_matureMinResponses = 0;
+    uint8 private constant SL_LOW_noviceOraclesCount = 0;
+    uint8 private constant SL_LOW_noviceMinResponses = 0;
 
-    uint8 constant SL_DEFAULT_totalMinResponses = 3;
-    uint8 constant SL_DEFAULT_seniorOraclesCount = 3;
-    uint8 constant SL_DEFAULT_seniorMinResponses = 2;
-    uint8 constant SL_DEFAULT_matureOraclesCount = 1;
-    uint8 constant SL_DEFAULT_matureMinResponses = 0;
-    uint8 constant SL_DEFAULT_noviceOraclesCount = 1;
-    uint8 constant SL_DEFAULT_noviceMinResponses = 0;
+    uint8 private constant SL_DEFAULT_totalMinResponses = 3;
+    uint8 private constant SL_DEFAULT_seniorOraclesCount = 3;
+    uint8 private constant SL_DEFAULT_seniorMinResponses = 2;
+    uint8 private constant SL_DEFAULT_matureOraclesCount = 1;
+    uint8 private constant SL_DEFAULT_matureMinResponses = 0;
+    uint8 private constant SL_DEFAULT_noviceOraclesCount = 1;
+    uint8 private constant SL_DEFAULT_noviceMinResponses = 0;
 
-    uint8 constant SL_CRITICAL_totalMinResponses = 5;
-    uint8 constant SL_CRITICAL_seniorOraclesCount = 4;
-    uint8 constant SL_CRITICAL_seniorMinResponses = 3;
-    uint8 constant SL_CRITICAL_matureOraclesCount = 2;
-    uint8 constant SL_CRITICAL_matureMinResponses = 0;
-    uint8 constant SL_CRITICAL_noviceOraclesCount = 1;
-    uint8 constant SL_CRITICAL_noviceMinResponses = 0;
+    uint8 private constant SL_CRITICAL_totalMinResponses = 5;
+    uint8 private constant SL_CRITICAL_seniorOraclesCount = 4;
+    uint8 private constant SL_CRITICAL_seniorMinResponses = 3;
+    uint8 private constant SL_CRITICAL_matureOraclesCount = 2;
+    uint8 private constant SL_CRITICAL_matureMinResponses = 0;
+    uint8 private constant SL_CRITICAL_noviceOraclesCount = 1;
+    uint8 private constant SL_CRITICAL_noviceMinResponses = 0;
 
     enum SecurityLevel {Min, Low, Default, Critical}
 

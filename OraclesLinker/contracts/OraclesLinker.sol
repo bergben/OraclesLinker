@@ -28,10 +28,8 @@ contract OraclesLinker is OraclesLinksHandler, RandomOraclesProviderHost {
 
     function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req, uint256 _payment)
         internal
-        returns (
-            // onlyValidRequirements(_req.base.requirements)
-            bytes32 oraclesLinkId
-        )
+        onlyValidRequirements(_req.base.requirements)
+        returns (bytes32 oraclesLinkId)
     {
         bytes32 seed;
         (oraclesLinkId, seed) = addOraclesLink();

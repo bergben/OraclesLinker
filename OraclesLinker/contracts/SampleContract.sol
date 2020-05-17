@@ -17,7 +17,6 @@ contract SampleContract is OraclesLinker, Ownable {
     bytes32[] private oracleSources;
 
     constructor(address _randomOraclesProviderAddress) public {
-        setDefaultSecurityLevels();
         // Set the address for the RandomOraclesProvider token for the network.
         if (_randomOraclesProviderAddress == address(0)) {
             // Useful for deploying to public networks.
