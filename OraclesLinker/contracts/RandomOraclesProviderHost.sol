@@ -1,6 +1,7 @@
 pragma solidity 0.6.8;
 
 import "oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol";
+import "./OraclesLink.sol";
 
 
 /** SPDX-License-Identifier: MIT*/
@@ -37,5 +38,72 @@ contract RandomOraclesProviderHost {
      */
     function randomOraclesProviderAddress() internal view returns (address) {
         return address(randomOraclesProvider);
+    }
+
+    function getSeniorOracleWithJob(uint256 _index, bytes32 _jobType)
+        internal
+        returns (
+            address oracleAddress,
+            bytes32 jobId,
+            uint256 cost
+        )
+    {
+        (oracleAddress, jobId, cost) = randomOraclesProvider.getSeniorOracleWithJob(_index, _jobType);
+        return (oracleAddress, jobId, cost);
+    }
+
+    function getMatureOracleWithJob(uint256 _index, bytes32 _jobType)
+        internal
+        returns (
+            address oracleAddress,
+            bytes32 jobId,
+            uint256 cost
+        )
+    {
+        (oracleAddress, jobId, cost) = randomOraclesProvider.getMatureOracleWithJob(_index, _jobType);
+        return (oracleAddress, jobId, cost);
+    }
+
+    function getNoviceOracleWithJob(uint256 _index, bytes32 _jobType)
+        internal
+        returns (
+            address oracleAddress,
+            bytes32 jobId,
+            uint256 cost
+        )
+    {
+        (oracleAddress, jobId, cost) = randomOraclesProvider.getNoviceOracleWithJob(_index, _jobType);
+        return (oracleAddress, jobId, cost);
+    }
+
+    function getRandomOracleIndices(
+        OraclesLink.PerSourceRequirements memory _requirements,
+        bytes32 _seed,
+        bytes32 _jobType
+    )
+        private
+        returns (
+            uint256[] memory seniorOracleIndices,
+            uint256[] memory matureOracleIndices,
+            uint256[] memory noviceOracleIndices
+        )
+    {
+        // find random senior oracles
+        seniorOracleIndices = new uint256[](_requirements.seniorOraclesCount);
+        seniorOracleIndices = randomOraclesProvider.getRandomSeniorIndices(_requirements.seniorOraclesCount, _jobType, _seed);
+
+        matureOracleIndices = new uint256[](_requirements.matureOraclesCount);
+        if (_requirements.matureOraclesCount > 0) {
+            // find random mature oracles
+            matureOracleIndices = randomOraclesProvider.getRandomMatureIndices(_requirements.matureOraclesCount, _jobType, _seed);
+        }
+
+        noviceOracleIndices = new uint256[](_requirements.noviceOraclesCount);
+        if (_requirements.noviceOraclesCount > 0) {
+            // find random novice oracles
+            noviceOracleIndices = randomOraclesProvider.getRandomNoviceIndices(_requirements.noviceOraclesCount, _jobType, _seed);
+        }
+
+        return (seniorOracleIndices, matureOracleIndices, noviceOracleIndices);
     }
 }
