@@ -15,8 +15,7 @@ import "./OraclesLinker.sol"; // todo replace with npm
 contract SampleContract is OraclesLinker, Ownable {
     event OraclesLinkFulfilled(bytes32 oraclesLinkId, int256 answer);
 
-    constructor(address _randomOraclesProviderAddress) public {
-        setPublicChainlinkToken();
+    constructor(address _randomOraclesProviderAddress, address _linkAddress) public {
         // Set the address for the RandomOraclesProvider token for the network.
         if (_randomOraclesProviderAddress == address(0)) {
             // Useful for deploying to public networks.
@@ -24,6 +23,15 @@ contract SampleContract is OraclesLinker, Ownable {
         } else {
             // Useful if you're deploying to a local network.
             setRandomOraclesProvider(_randomOraclesProviderAddress);
+        }
+
+        // Set the address for the LINK token for the network.
+        if (_linkAddress == address(0)) {
+            // Useful for deploying to public networks.
+            setPublicChainlinkToken();
+        } else {
+            // Useful if you're deploying to a local network.
+            setChainlinkToken(_linkAddress);
         }
     }
 
