@@ -20,11 +20,11 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
     event OraclesLinkRequested(bytes32 indexed id);
     event OraclesLinkFulfilled(bytes32 indexed id);
-    event OraclesLinkSrouceResponsesIdCreated(bytes32 sourceResponsesId, string url);
+    event OraclesLinkChainlinkSourceCreated(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, string url);
     event OraclesLinkSourceComplete(bytes32 oraclesLinkId, bytes32 sourceResponsesId);
     event OraclesLinkAggregated(bytes32 oraclesLinkId, int256 result);
     event OraclesLinkSourceAggregated(bytes32 oraclesLinkId, bytes32 sourceResponsesId, int256 result);
-    event ChainlinkAnswerInt256Handled(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, bytes32 oraclesLinkId);
+    event ChainlinkAnswerInt256Handled(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, bytes32 oraclesLinkId, int256 answer);
 
     /**
      * @notice The fulfill method for the calling smart contract that overrides it as callback
@@ -100,7 +100,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         delete chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
         delete chainlinkRequestIdToOraclesLinkId[_chainlinkRequestId];
 
-        emit ChainlinkAnswerInt256Handled(_chainlinkRequestId, sourceResponsesId, oraclesLinkId);
+        emit ChainlinkAnswerInt256Handled(_chainlinkRequestId, sourceResponsesId, oraclesLinkId, _answer);
 
         // check if source is not yet marked as complete
         // if not and if the requirements for the source responses are fulfilled => mark source as complete
@@ -125,26 +125,32 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         // 1. get all sourceResponsesIds for the oraclesLinkId
         bytes32[] storage sourceResponsesIds = oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
 
-        int256[] memory sourceResults = new int256[](sourceResponsesIds.length);
+        int256[] memory sourceResultsTotal = new int256[](sourceResponsesIds.length);
 
+        uint8 sourceResultsIndex = 0;
         // 2. aggregate responses per source
         for (uint8 i = 0; i < sourceResponsesIds.length; i++) {
             bytes32 sourceResponsesId = sourceResponsesIds[i];
             ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
-            if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
-                sourceResults[i] = Median.calculate(responsesInt256ToInt256(responses));
+            if (responses.length > 0 && _oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
+                sourceResultsTotal[sourceResultsIndex] = Median.calculate(responsesInt256ToInt256(responses));
+                emit OraclesLinkSourceAggregated(_oraclesLinkId, sourceResponsesId, sourceResultsTotal[sourceResultsIndex]);
+                sourceResultsIndex++;
             }
             // clean up mappings for this source once aggregated
             delete sourceResponsesIdToResponses[sourceResponsesId];
             delete sourceResponsesIdToOraclesLinkId[sourceResponsesId];
             delete isSourceResponsesComplete[sourceResponsesId];
-            emit OraclesLinkSourceAggregated(_oraclesLinkId, sourceResponsesId, sourceResults[i]);
+        }
+        int256[] memory sourceResultsNonEmpty = new int256[](sourceResultsIndex);
+        for (uint8 i = 0; i < sourceResultsIndex; i++) {
+            sourceResultsNonEmpty[i] = sourceResultsTotal[i];
         }
 
         // 2. aggregate sources
         int256 result;
         if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
-            result = Median.calculate(sourceResults);
+            result = Median.calculate(sourceResultsNonEmpty);
         }
         emit OraclesLinkAggregated(_oraclesLinkId, result);
 
@@ -281,7 +287,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
     modifier onlyValidRequirements(OraclesLink.PerSourceRequirements memory _requirements) {
         uint8 totalCount = _requirements.seniorOraclesCount + _requirements.matureOraclesCount + _requirements.noviceOraclesCount;
-        require(_requirements.totalMinResponses < totalCount, "totalMinResponses must be < total oracles count");
+        require(_requirements.totalMinResponses <= totalCount, "totalMinResponses must be < total oracles count");
 
         require(_requirements.noviceOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
         require(_requirements.matureOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");

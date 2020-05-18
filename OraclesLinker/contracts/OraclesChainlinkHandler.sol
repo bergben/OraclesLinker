@@ -24,6 +24,10 @@ abstract contract OraclesChainlinkHandler is ChainlinkClient {
         bytes32 _jobId,
         uint256 _payment
     ) internal returns (bytes32 chainlinkRequestId) {
+        // uncomment the following two lines for mocking locally (for mocking the answers, also uncomment recordChainlinkFulfillment)
+        chainlinkRequestId = keccak256(abi.encodePacked(_url, _oracleAddress, _jobId));
+        return chainlinkRequestId;
+
         Chainlink.Request memory req = buildChainlinkRequest(_jobId, address(this), this.fulfillChainlinkInt256.selector);
         // Adds a URL with the key "get" to the request parameters
         req.add("get", _url);
@@ -37,8 +41,8 @@ abstract contract OraclesChainlinkHandler is ChainlinkClient {
 
     function fulfillChainlinkInt256(bytes32 _chainlinkRequestId, int256 _answer)
         external
-        // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
-        recordChainlinkFulfillment(_chainlinkRequestId)
+    // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
+    // recordChainlinkFulfillment(_chainlinkRequestId)
     {
         handleChainlinkAnswerInt256(_chainlinkRequestId, _answer);
     }

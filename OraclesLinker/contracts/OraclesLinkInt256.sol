@@ -63,6 +63,10 @@ library OraclesLinkInt256 {
         self.sources[index] = Source(_url, _path, _multiplier, true);
     }
 
+    function setSecurityLevel(Request memory self, OraclesLink.SecurityLevel _securityLevel) internal pure {
+        self.requirements.setSecurityLevel(_securityLevel);
+    }
+
     function setAggregationMethod(Request memory self, AggregationMethod _aggregationMethod) internal pure {
         self.aggregationMethod = _aggregationMethod;
     }

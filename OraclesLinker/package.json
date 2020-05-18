@@ -10,7 +10,9 @@
     "migrate": "truffle migrate",
     "console": "truffle console",
     "reset": "truffle migrate --reset",
-    "link": "npm link ../OraclesLinkProvider"
+    "link": "npm link ../OraclesLinkProvider",
+    "deploy-and-trigger": "npm run reset && npm run trigger-oracles-link",
+    "trigger-oracles-link": "truffle exec ./dev/truffle-scripts/triggerOraclesLink.js"
   },
   "dependencies": {
     "@chainlink/contracts": "0.0.3",

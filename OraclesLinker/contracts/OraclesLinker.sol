@@ -53,18 +53,16 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
         uint256[] memory _payments,
         OracleLevel[] memory _oracleLevels
     ) private {
-        bytes32[] memory sourceResponsesIds = new bytes32[](_sources.length);
-
+        bytes32[] storage oraclesLinkSourceResponsesIds = oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
         // send out each source to the random oracles
         for (uint8 i = 0; i < _sources.length; i++) {
             bytes32 sourceResponsesId = keccak256(abi.encodePacked(_seed, i));
+            oraclesLinkSourceResponsesIds.push(sourceResponsesId);
             sourceResponsesIdToOraclesLinkId[sourceResponsesId] = _oraclesLinkId;
             isSourceResponsesComplete[sourceResponsesId] = false;
             string memory url = _sources[i].url;
             string memory path = _sources[i].path;
             int256 multiplier = _sources[i].multiplier;
-
-            emit OraclesLinkSrouceResponsesIdCreated(sourceResponsesId, url);
 
             for (uint8 j = 0; j < _oracleAddresses.length; j++) {
                 bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, _oracleAddresses[j], _jobIds[j], _payments[j]);
@@ -72,9 +70,9 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
                 chainlinkRequestIdToOracleLevel[chainlinkRequestId] = _oracleLevels[j];
                 chainlinkRequestIdToSourceResponsesId[chainlinkRequestId] = sourceResponsesId;
                 chainlinkRequestIdToOraclesLinkId[chainlinkRequestId] = _oraclesLinkId;
+
+                emit OraclesLinkChainlinkSourceCreated(chainlinkRequestId, sourceResponsesId, url);
             }
         }
-
-        oraclesLinkIdToSourceResponsesIds[_oraclesLinkId] = sourceResponsesIds;
     }
 }
