@@ -14,9 +14,9 @@ import "./OraclesLinker.sol"; // todo replace with npm
  */
 contract SampleContract is OraclesLinker, Ownable {
     event OraclesLinkFulfilled(bytes32 oraclesLinkId, int256 answer);
-    bytes32[] private oracleSources;
 
     constructor(address _randomOraclesProviderAddress) public {
+        setPublicChainlinkToken();
         // Set the address for the RandomOraclesProvider token for the network.
         if (_randomOraclesProviderAddress == address(0)) {
             // Useful for deploying to public networks.
@@ -45,5 +45,11 @@ contract SampleContract is OraclesLinker, Ownable {
      */
     function fulfillOraclesLinkInt256(bytes32 _oraclesLinkId, int256 _answer) internal override {
         emit OraclesLinkFulfilled(_oraclesLinkId, _answer);
+    }
+
+    // withdrawLink allows the owner to withdraw any extra LINK on the contract
+    function withdrawLink() public onlyOwner() {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
     }
 }

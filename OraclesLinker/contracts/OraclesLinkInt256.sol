@@ -11,7 +11,7 @@ import "./OraclesLink.sol";
  */
 library OraclesLinkInt256 {
     using OraclesLinkRequirements for OraclesLinkRequirements.Requirements;
-    enum AggregationMethod {Median, None}
+    enum AggregationMethod {Median}
 
     struct Source {
         string url;

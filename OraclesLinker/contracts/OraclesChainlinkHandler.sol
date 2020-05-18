@@ -35,7 +35,11 @@ abstract contract OraclesChainlinkHandler is ChainlinkClient {
         return sendChainlinkRequestTo(_oracleAddress, req, _payment);
     }
 
-    function fulfillChainlinkInt256() external {
+    function fulfillChainlinkInt256(bytes32 _chainlinkRequestId, int256 _answer)
+        external
+        // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
+        recordChainlinkFulfillment(_requestId)
+    {
         // if min responses reached =>
         // call fulfill
         bytes32 oraclesLinkId = "test";
