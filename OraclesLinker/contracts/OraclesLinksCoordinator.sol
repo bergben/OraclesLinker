@@ -27,26 +27,35 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
     uint8 private constant MAX_ORACLES_PER_LEVEL = 21;
     uint256 private oracleLinksCount = 1;
 
-    struct OraclesLinkRequest {
-        bytes32 id;
-        bool exists;
-        int256[] sourceResponses;
+    struct ResponseInt256 {
+        int256 answer;
+        OracleLevel oracleLevel;
     }
 
-    // map each outgoing chainlink request id to a oracle link id
-    mapping(bytes32 => OraclesLinkRequest) internal chainlinkRequestIdToOraclesLinkRequest;
+    struct OraclesLinkRequest {
+        bool exists;
+        uint8 sourcesComplete;
+        // todo: requirements
+    }
 
-    // map each outgoing chainlink request id to the index of the respective source in the OraclesLinkRequest sourceResponses array
-    mapping(bytes32 => uint8) internal chainlinkRequestIdsToSourceIndex;
+    // map sourceResponsesId => actual oracle responses
+    mapping(bytes32 => ResponseInt256[]) internal sourceResponsesIdToResponses;
+
+    // map each source responses id to a oracles link id for aggregation of the whole oracle link
+    mapping(bytes32 => bytes32) internal sourceResponsesIdToOraclesLinkId;
+
+    // map each oracles link id to the OraclesLinkRequest data
+    mapping(bytes32 => OraclesLinkRequest) internal oraclesLinkIdToOraclesLinkRequest;
+
+    // map each outgoing chainlink request id to respective source response id to be able to link the answer to a source for aggregation
+    mapping(bytes32 => bytes32) internal chainlinkRequestIdsToSourceResponsesId;
 
     // map each outgoing chainlink request id to the oracle Level handling the chainlink request
     mapping(bytes32 => OracleLevel) internal chainlinkRequestIdToOracleLevel;
 
-    // // Local Request ID => addresses of oracles the requests were sent to
-    // mapping(bytes32 => address[]) private pendingOracleLinks;
-
-    // // Requester's Request ID => Requester
-    // mapping(bytes32 => Requester) internal requesters;
+    // map for flag if the responses for a source are marked as complete
+    // sourceReponsesId => bool
+    mapping(bytes32 => bool) internal isSourceResponsesComplete;
 
     /**
      * @notice The method called when an answer is received for a chainlink int256 request, overrides the OraclesChainlinkHandler virtual method called there
@@ -54,9 +63,32 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
      * @param _answer The answer provided by the Oracle
      */
     function handleChainlinkAnswerInt256(bytes32 _chainlinkRequestId, int256 _answer) internal override {
-        OraclesLinkRequest storage oraclesLinkRequest = chainlinkRequestIdToOraclesLinkRequest[_chainlinkRequestId];
+        // retrieve assigned OraclesLinkRequest
+        bytes32 sourceResponsesId = chainlinkRequestIdsToSourceResponsesId[_chainlinkRequestId];
+        bytes32 oraclesLinkId = sourceResponsesIdToOraclesLinkId[sourceResponsesId];
+        OraclesLinkRequest storage oraclesLinkRequest = oraclesLinkIdToOraclesLinkRequest[oraclesLinkId];
+
         require(oraclesLinkRequest.exists, "Oracles Link for this Chainlink Request id does not exist");
-        uint8 sourceIndex = chainlinkRequestIdsToSourceIndex[_chainlinkRequestId];
+
+        // retrieve oracle level and responses for the respective responses array for the source that this chainlink request id is assigned to
+        OracleLevel oracleLevel = chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
+        ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
+
+        // add oracle response
+        responses.push(ResponseInt256(_answer, oracleLevel));
+
+        // check if requirements for the source responses are fulfilled, if yes => mark source as complete
+
+        isSourceResponsesComplete[sourceResponsesId] = true;
+
+        // check if requirements for oracleLink are fulfilled (enough sources with isComplete flag)
+
+        // get how many source responses are there per oracle level already
+        // for(uint8 i = 0; i < )
+
+        // how many answers are there in total
+
+        // trigger aggregation of sources if sources min limit reached
     }
 
     function addOraclesLink() internal returns (bytes32 oraclesLinkId, bytes32 seed) {
