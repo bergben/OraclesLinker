@@ -18,16 +18,20 @@ import "./OraclesChainlinkHandler.sol";
 abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesChainlinkHandler {
     enum OracleLevel {Novice, Mature, Senior}
 
+    event OraclesLinkRequested(bytes32 indexed id);
+    event OraclesLinkFulfilled(bytes32 indexed id);
+    event OraclesLinkSrouceResponsesIdCreated(bytes32 sourceResponsesId, string url);
+    event OraclesLinkSourceComplete(bytes32 oraclesLinkId, bytes32 sourceResponsesId);
+    event OraclesLinkAggregated(bytes32 oraclesLinkId, int256 result);
+    event OraclesLinkSourceAggregated(bytes32 oraclesLinkId, bytes32 sourceResponsesId, int256 result);
+    event ChainlinkAnswerInt256Handled(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, bytes32 oraclesLinkId);
+
     /**
      * @notice The fulfill method for the calling smart contract that overrides it as callback
      * @param _oraclesLinkId The ID that was generated for the OraclesLink
      * @param _answer The answer provided by the Oracles
      */
     function fulfillOraclesLinkInt256(bytes32 _oraclesLinkId, int256 _answer) internal virtual;
-
-    // event OraclesLinkRequested(bytes32 indexed id);
-    // event OraclesLinkFulfilled(bytes32 indexed id);
-    // event OraclesLinkCancelled(bytes32 indexed id);
 
     uint8 private constant MAX_ORACLES_PER_LEVEL = 21;
     uint256 private oracleLinksCount = 1;
@@ -96,10 +100,13 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         delete chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
         delete chainlinkRequestIdToOraclesLinkId[_chainlinkRequestId];
 
+        emit ChainlinkAnswerInt256Handled(_chainlinkRequestId, sourceResponsesId, oraclesLinkId);
+
         // check if source is not yet marked as complete
         // if not and if the requirements for the source responses are fulfilled => mark source as complete
         if (!isSourceResponsesComplete[sourceResponsesId] && isPerSourceRequirementsFulfilled(responses, oraclesLinkRequest.requirements)) {
             isSourceResponsesComplete[sourceResponsesId] = true;
+            emit OraclesLinkSourceComplete(oraclesLinkId, sourceResponsesId);
             handleSourceComplete(oraclesLinkId, oraclesLinkRequest);
         }
     }
@@ -131,6 +138,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
             delete sourceResponsesIdToResponses[sourceResponsesId];
             delete sourceResponsesIdToOraclesLinkId[sourceResponsesId];
             delete isSourceResponsesComplete[sourceResponsesId];
+            emit OraclesLinkSourceAggregated(_oraclesLinkId, sourceResponsesId, sourceResults[i]);
         }
 
         // 2. aggregate sources
@@ -138,13 +146,15 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
             result = Median.calculate(sourceResults);
         }
+        emit OraclesLinkAggregated(_oraclesLinkId, result);
 
-        // 3. return answer by calling fulfill method that is overriden by user contract
-        fulfillOraclesLinkInt256(_oraclesLinkId, result);
-
-        // 4. cleanup mappings etc.
+        // 3. cleanup mappings etc.
         delete oraclesLinkIdToOraclesLinkRequest[_oraclesLinkId];
         delete oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
+
+        // 4. return answer by calling fulfill method that is overriden by user contract
+        emit OraclesLinkFulfilled(_oraclesLinkId);
+        fulfillOraclesLinkInt256(_oraclesLinkId, result);
     }
 
     function responsesInt256ToInt256(ResponseInt256[] storage responses) private view returns (int256[] memory int256Responses) {

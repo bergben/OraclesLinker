@@ -39,6 +39,8 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
 
         sendChainlinkInt256Requests(oraclesLinkId, seed, _req.sources, oracleAddresses, jobIds, payments, oracleLevels);
 
+        emit OraclesLinkRequested(oraclesLinkId);
+
         return oraclesLinkId;
     }
 
@@ -61,6 +63,8 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
             string memory url = _sources[i].url;
             string memory path = _sources[i].path;
             int256 multiplier = _sources[i].multiplier;
+
+            emit OraclesLinkSrouceResponsesIdCreated(sourceResponsesId, url);
 
             for (uint8 j = 0; j < _oracleAddresses.length; j++) {
                 bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, _oracleAddresses[j], _jobIds[j], _payments[j]);
