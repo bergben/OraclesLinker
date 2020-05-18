@@ -66,7 +66,8 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
                 bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, _oracleAddresses[j], _jobIds[j], _payments[j]);
 
                 chainlinkRequestIdToOracleLevel[chainlinkRequestId] = _oracleLevels[j];
-                chainlinkRequestIdsToSourceResponsesId[chainlinkRequestId] = sourceResponsesId;
+                chainlinkRequestIdToSourceResponsesId[chainlinkRequestId] = sourceResponsesId;
+                chainlinkRequestIdToOraclesLinkId[chainlinkRequestId] = _oraclesLinkId;
             }
         }
 

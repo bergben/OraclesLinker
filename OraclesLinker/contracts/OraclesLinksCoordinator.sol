@@ -55,7 +55,10 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
     mapping(bytes32 => OraclesLinkRequest) internal oraclesLinkIdToOraclesLinkRequest;
 
     // map each outgoing chainlink request id to respective source response id to be able to link the answer to a source for aggregation
-    mapping(bytes32 => bytes32) internal chainlinkRequestIdsToSourceResponsesId;
+    mapping(bytes32 => bytes32) internal chainlinkRequestIdToSourceResponsesId;
+
+    // map each outgoing chainlink request id to respective oracles link id
+    mapping(bytes32 => bytes32) internal chainlinkRequestIdToOraclesLinkId;
 
     // map each outgoing chainlink request id to the oracle Level handling the chainlink request
     mapping(bytes32 => OracleLevel) internal chainlinkRequestIdToOracleLevel;
@@ -74,18 +77,24 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
      */
     function handleChainlinkAnswerInt256(bytes32 _chainlinkRequestId, int256 _answer) internal override {
         // retrieve assigned OraclesLinkRequest
-        bytes32 sourceResponsesId = chainlinkRequestIdsToSourceResponsesId[_chainlinkRequestId];
-        bytes32 oraclesLinkId = sourceResponsesIdToOraclesLinkId[sourceResponsesId];
+        bytes32 oraclesLinkId = chainlinkRequestIdToOraclesLinkId[_chainlinkRequestId];
         OraclesLinkRequest storage oraclesLinkRequest = oraclesLinkIdToOraclesLinkRequest[oraclesLinkId];
 
         require(oraclesLinkRequest.exists, "Oracles Link for this Chainlink Request id does not exist");
 
         // retrieve oracle level and responses for the respective responses array for the source that this chainlink request id is assigned to
         OracleLevel oracleLevel = chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
+
+        bytes32 sourceResponsesId = chainlinkRequestIdToSourceResponsesId[_chainlinkRequestId];
         ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
 
         // add oracle response
         responses.push(ResponseInt256(_answer, oracleLevel));
+
+        // delete chainlink request id mappings
+        delete chainlinkRequestIdToSourceResponsesId[_chainlinkRequestId];
+        delete chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
+        delete chainlinkRequestIdToOraclesLinkId[_chainlinkRequestId];
 
         // check if source is not yet marked as complete
         // if not and if the requirements for the source responses are fulfilled => mark source as complete
@@ -113,10 +122,15 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
         // 2. aggregate responses per source
         for (uint8 i = 0; i < sourceResponsesIds.length; i++) {
-            ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesIds[i]];
+            bytes32 sourceResponsesId = sourceResponsesIds[i];
+            ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
             if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
                 sourceResults[i] = Median.calculate(responsesInt256ToInt256(responses));
             }
+            // clean up mappings for this source once aggregated
+            delete sourceResponsesIdToResponses[sourceResponsesId];
+            delete sourceResponsesIdToOraclesLinkId[sourceResponsesId];
+            delete isSourceResponsesComplete[sourceResponsesId];
         }
 
         // 2. aggregate sources
@@ -129,6 +143,8 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         fulfillOraclesLinkInt256(_oraclesLinkId, result);
 
         // 4. cleanup mappings etc.
+        delete oraclesLinkIdToOraclesLinkRequest[_oraclesLinkId];
+        delete oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
     }
 
     function responsesInt256ToInt256(ResponseInt256[] storage responses) private view returns (int256[] memory int256Responses) {
