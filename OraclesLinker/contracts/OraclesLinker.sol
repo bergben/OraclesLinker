@@ -29,26 +29,22 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
             OracleLevel[] memory oracleLevels
         ) = getOraclesWithJob(_req.requirements.perSource, seed, jobType);
 
-        oraclesLinkIdToOraclesLinkRequest[oraclesLinkId] = OraclesLinkRequest(true, 0);
+        oraclesLinkIdToOraclesLinkRequest[oraclesLinkId] = OraclesLinkRequest(true, 0, _req.requirements.perSource);
 
         // send out each source to the random oracles
         for (uint8 i = 0; i < _req.sources.length; i++) {
             bytes32 sourceId = keccak256(abi.encodePacked(seed, i));
             sourceResponsesIdToOraclesLinkId[sourceId] = oraclesLinkId;
             isSourceResponsesComplete[sourceId] = false;
+            string memory url = _req.sources[i].url;
+            string memory path = _req.sources[i].path;
+            int256 multiplier = _req.sources[i].multiplier;
 
             for (uint8 j = 0; j < oracleAddresses.length; j++) {
-                bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(
-                    _req.sources[i].url,
-                    _req.sources[i].path,
-                    _req.sources[i].multiplier,
-                    oracleAddresses[j],
-                    jobIds[j],
-                    payments[j]
-                );
+                bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, oracleAddresses[j], jobIds[j], payments[j]);
 
                 chainlinkRequestIdToOracleLevel[chainlinkRequestId] = oracleLevels[j];
-                chainlinkRequestIdsToSourceResponseId[chainlinkRequestId] = sourceId;
+                chainlinkRequestIdsToSourceResponsesId[chainlinkRequestId] = sourceId;
             }
         }
 

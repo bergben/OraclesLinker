@@ -35,7 +35,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
     struct OraclesLinkRequest {
         bool exists;
         uint8 sourcesComplete;
-        // todo: requirements
+        OraclesLink.PerSourceRequirements requirements;
     }
 
     // map sourceResponsesId => actual oracle responses

@@ -29,7 +29,7 @@ contract SampleContract is OraclesLinker, Ownable {
 
     function triggerOraclesLink(uint256 _payment) public onlyOwner returns (bytes32 oraclesLinkId) {
         // user builds oracles link for multiple sources similar to how chainlink buildChainlinkRequest and then sendChainlinkRequestTo works
-        OraclesLinkInt256.Request memory oraclesLink = buildOraclesLinkInt256(3);
+        OraclesLinkInt256.Request memory oraclesLink = buildOraclesLinkInt256(3, 2);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);

@@ -11,8 +11,8 @@ import "./OraclesLinkInt256.sol";
 contract OraclesLinksBuilder {
     using OraclesLinkInt256 for OraclesLinkInt256.Request;
 
-    function buildOraclesLinkInt256(uint8 _sources) internal pure returns (OraclesLinkInt256.Request memory) {
+    function buildOraclesLinkInt256(uint8 _sources, uint8 _minSourcesComplete) internal pure returns (OraclesLinkInt256.Request memory) {
         OraclesLinkInt256.Request memory req;
-        return req.initialize(_sources);
+        return req.initialize(_sources, _minSourcesComplete);
     }
 }

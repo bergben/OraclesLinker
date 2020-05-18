@@ -11,6 +11,7 @@ import "./OraclesLink.sol";
 library OraclesLinkRequirements {
     struct Requirements {
         OraclesLink.PerSourceRequirements perSource;
+        uint8 minSourcesComplete;
     }
 
     function setSecurityLevel(Requirements memory self, OraclesLink.SecurityLevel _securityLevel) internal pure {

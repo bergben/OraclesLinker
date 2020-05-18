@@ -33,13 +33,20 @@ library OraclesLinkInt256 {
      * @param _sources The amount of sources
      * @return The initialized request
      */
-    function initialize(Request memory self, uint8 _sources) internal pure returns (OraclesLinkInt256.Request memory) {
+    function initialize(
+        Request memory self,
+        uint8 _sources,
+        uint8 _minSourcesComplete
+    ) internal pure returns (OraclesLinkInt256.Request memory) {
         self.sources = new Source[](_sources);
 
         // set default aggregation method to Median
         self.aggregationMethod = AggregationMethod.Median;
         // set security level default (sets default requirement settings)
         self.requirements.setSecurityLevel(OraclesLink.SecurityLevel.Default);
+
+        self.requirements.minSourcesComplete = _minSourcesComplete;
+
         return self;
     }
 
