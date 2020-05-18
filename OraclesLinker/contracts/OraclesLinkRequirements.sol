@@ -6,13 +6,11 @@ import "./OraclesLink.sol";
 /** SPDX-License-Identifier: MIT*/
 
 /**
- * @title Library for common OraclesLink Request operations
+ * @title Library for OraclesLink Requirements common to all OracleLinks
  */
-library OraclesLinkBase {
-    struct Base {
-        address callbackAddress;
-        bytes4 callbackFunctionId;
-        OraclesLink.PerSourceRequirements requirements;
+library OraclesLinkRequirements {
+    struct Requirements {
+        OraclesLink.PerSourceRequirements perSourceRequirements;
     }
 
     function setSecurityLevel(Base memory self, OraclesLink.SecurityLevel _securityLevel) internal pure {
@@ -47,7 +45,7 @@ library OraclesLinkBase {
         uint8 _noviceOraclesCount,
         uint8 _noviceMinResponses
     ) internal pure {
-        self.requirements = OraclesLink.PerSourceRequirements(
+        self.perSourceRequirements = OraclesLink.PerSourceRequirements(
             _totalMinResponses,
             _seniorOraclesCount,
             _seniorMinResponses,

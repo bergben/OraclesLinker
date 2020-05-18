@@ -1,7 +1,8 @@
 pragma solidity 0.6.8;
 
-import "./OraclesLinkBase.sol";
+import "./OraclesLinkRequirements.sol";
 import "./Utils.sol";
+import "./OraclesLink.sol";
 
 
 /** SPDX-License-Identifier: MIT*/
@@ -10,7 +11,7 @@ import "./Utils.sol";
  * @title Library for Oracles Links for Int256
  */
 library OraclesLinkInt256 {
-    using OraclesLinkBase for OraclesLinkBase.Base;
+    using OraclesLinkRequirements for OraclesLinkRequirements.Requirements;
     enum AggregationMethod {Median, None}
 
     struct Source {
@@ -21,7 +22,7 @@ library OraclesLinkInt256 {
     }
 
     struct Request {
-        OraclesLinkBase.Base base;
+        OraclesLinkRequirements.Requirements requirements;
         AggregationMethod aggregationMethod;
         Source[] sources;
     }
@@ -34,19 +35,13 @@ library OraclesLinkInt256 {
      * @param _callbackFunction The callback function signature
      * @return The initialized request
      */
-    function initialize(
-        Request memory self,
-        uint8 _sources,
-        address _callbackAddress,
-        bytes4 _callbackFunction
-    ) internal pure returns (OraclesLinkInt256.Request memory) {
-        self.base.callbackAddress = _callbackAddress;
-        self.base.callbackFunctionId = _callbackFunction;
-
+    function initialize(Request memory self, uint8 _sources) internal pure returns (OraclesLinkInt256.Request memory) {
         self.sources = new Source[](_sources);
 
         // set default aggregation method to Median
         self.aggregationMethod = AggregationMethod.Median;
+        // set security level default (sets default requirement settings)
+        self.requirements.setSecurityLevel(OraclesLink.SecurityLevel.Default);
         return self;
     }
 
