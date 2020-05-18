@@ -10,11 +10,11 @@ import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
  */
 abstract contract OraclesChainlinkHandler is ChainlinkClient {
     /**
-     * @notice The fulfill method for the calling smart contract that overrides it as callback
-     * @param _oraclesLinkId The ID that was generated for the OraclesLink
-     * @param _answer The answer provided by the Oracles
+     * @notice The method called when an answer is received for a chainlink int256 request, to be overriden by the OraclesLinksCoordinator
+     * @param _chainlinkRequestId The ID that was generated for the Chainlink Request
+     * @param _answer The answer provided by the Oracle
      */
-    function fulfillOraclesLinkInt256(bytes32 _oraclesLinkId, int256 _answer) internal virtual;
+    function handleChainlinkAnswerInt256(bytes32 _chainlinkRequestId, int256 _answer) internal virtual;
 
     function sendInt256ChainlinkRequest(
         string memory _url,
@@ -38,12 +38,8 @@ abstract contract OraclesChainlinkHandler is ChainlinkClient {
     function fulfillChainlinkInt256(bytes32 _chainlinkRequestId, int256 _answer)
         external
         // Use recordChainlinkFulfillment to ensure only the requesting oracle can fulfill
-        recordChainlinkFulfillment(_requestId)
+        recordChainlinkFulfillment(_chainlinkRequestId)
     {
-        // if min responses reached =>
-        // call fulfill
-        bytes32 oraclesLinkId = "test";
-        int256 answer = 1;
-        fulfillOraclesLinkInt256(oraclesLinkId, answer);
+        handleChainlinkAnswerInt256(_chainlinkRequestId, _answer);
     }
 }

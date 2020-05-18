@@ -4,7 +4,6 @@ import "oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvide
 
 import "./OraclesLinksBuilder.sol";
 import "./OraclesLinksCoordinator.sol";
-import "./OraclesChainlinkHandler.sol";
 
 
 /** SPDX-License-Identifier: MIT*/
@@ -12,7 +11,7 @@ import "./OraclesChainlinkHandler.sol";
 /**
  * @title OraclesLinker is a contract which creates requests to multiple chainlink oracles picked at random by the RandomOraclesProvider
  */
-abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator, OraclesChainlinkHandler {
+abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator {
     function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req, uint256 _payment)
         internal
         onlyValidRequirements(_req.requirements.perSource)
@@ -23,11 +22,12 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator,
 
         bytes32 jobType = "HttpGetInt256";
 
-        (address[] memory oracleAddresses, bytes32[] memory jobIds, uint256[] memory payments) = getOraclesWithJob(
-            _req.requirements.perSource,
-            seed,
-            jobType
-        );
+        (
+            address[] memory oracleAddresses,
+            bytes32[] memory jobIds,
+            uint256[] memory payments,
+            OracleLevel[] memory oracleLevels
+        ) = getOraclesWithJob(_req.requirements.perSource, seed, jobType);
 
         for (uint8 i = 0; i < _req.sources.length; i++) {
             // send out each source to the random oracles
@@ -41,7 +41,9 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator,
                     payments[j]
                 );
 
-                chainlinkRequestIdsToOraclesLinkIds[chainlinkRequestId] = oraclesLinkId;
+                chainlinkRequestIdToOracleLevel[chainlinkRequestId] = oracleLevels[j];
+                chainlinkRequestIdsToSourceIndex[chainlinkRequestId] = i;
+                // chainlinkRequestIdToOraclesLinkRequest[chainlinkRequestId] = oraclesLinkId;
             }
         }
 
