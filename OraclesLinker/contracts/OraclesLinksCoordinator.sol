@@ -36,6 +36,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         bool exists;
         uint8 sourcesComplete;
         OraclesLink.PerSourceRequirements requirements;
+        uint8 minSourcesComplete;
     }
 
     // map sourceResponsesId => actual oracle responses
@@ -77,18 +78,14 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         // add oracle response
         responses.push(ResponseInt256(_answer, oracleLevel));
 
-        // check if requirements for the source responses are fulfilled, if yes => mark source as complete
+        // check if source is not yet marked as complete
+        // if not and if the requirements for the source responses are fulfilled => mark source as complete
+        if (!isSourceResponsesComplete[sourceResponsesId] && isPerSourceRequirementsFulfilled(responses, oraclesLinkRequest.requirements)) {
+            isSourceResponsesComplete[sourceResponsesId] = true;
+            // new source has been marked as complete => check if minSourcesComplete is fulfilled for the oraclesLink
 
-        isSourceResponsesComplete[sourceResponsesId] = true;
-
-        // check if requirements for oracleLink are fulfilled (enough sources with isComplete flag)
-
-        // get how many source responses are there per oracle level already
-        // for(uint8 i = 0; i < )
-
-        // how many answers are there in total
-
-        // trigger aggregation of sources if sources min limit reached
+            // on fulfill -> cleanup request and mappings etc.
+        }
     }
 
     function addOraclesLink() internal returns (bytes32 oraclesLinkId, bytes32 seed) {
@@ -161,7 +158,56 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         return (oracleAddresses, jobIds, payments, oracleLevels);
     }
 
+    function isPerSourceRequirementsFulfilled(ResponseInt256[] storage _responses, OraclesLink.PerSourceRequirements storage _requirements)
+        private
+        view
+        returns (bool)
+    {
+        // check if total min is reached
+        if (_responses.length < _requirements.totalMinResponses) {
+            return false;
+        }
+
+        // check if min responses for oracle levels have been reached
+        // 1. get the respones count per oracle level
+        uint8 seniorOraclesResponses = 0;
+        uint8 matureOraclesResponses = 0;
+        uint8 noviceOraclesResponses = 0;
+        for (uint8 i = 0; i < _responses.length; i++) {
+            if (_responses[i].oracleLevel == OracleLevel.Senior) {
+                seniorOraclesResponses++;
+            }
+            if (_responses[i].oracleLevel == OracleLevel.Senior) {
+                matureOraclesResponses++;
+            }
+            if (_responses[i].oracleLevel == OracleLevel.Senior) {
+                noviceOraclesResponses++;
+            }
+        }
+
+        // 2. check if min responses for each oracle level has been reached
+        if (seniorOraclesResponses < _requirements.seniorMinResponses) {
+            return false;
+        }
+        if (matureOraclesResponses < _requirements.matureMinResponses) {
+            return false;
+        }
+        if (noviceOraclesResponses < _requirements.noviceMinResponses) {
+            return false;
+        }
+
+        // min responses for total and each oracle level are fulfilled!
+        return true;
+    }
+
     modifier onlyValidRequirements(OraclesLink.PerSourceRequirements memory _requirements) {
+        uint8 totalCount = _requirements.seniorOraclesCount + _requirements.matureOraclesCount + _requirements.noviceOraclesCount;
+        require(_requirements.totalMinResponses < totalCount, "totalMinResponses must be < total oracles count");
+
+        require(_requirements.noviceOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
+        require(_requirements.matureOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
+        require(_requirements.seniorOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
+
         // enforce security with senior oracles
         require(_requirements.seniorOraclesCount > 0, "Senior oracles count must be > 0");
         require(_requirements.seniorMinResponses > 0, "Min senior responses must be > 0");
@@ -169,10 +215,6 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
             _requirements.seniorOraclesCount > (_requirements.totalMinResponses / 2),
             "Half of min answers must be senior oracles answers (seniorOraclesCount > totalMinResponses/2)"
         );
-
-        require(_requirements.noviceOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
-        require(_requirements.matureOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
-        require(_requirements.seniorOraclesCount <= MAX_ORACLES_PER_LEVEL, "Cannot have more than 21 oracles per level");
 
         _;
     }

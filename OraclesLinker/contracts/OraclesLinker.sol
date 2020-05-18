@@ -29,7 +29,12 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
             OracleLevel[] memory oracleLevels
         ) = getOraclesWithJob(_req.requirements.perSource, seed, jobType);
 
-        oraclesLinkIdToOraclesLinkRequest[oraclesLinkId] = OraclesLinkRequest(true, 0, _req.requirements.perSource);
+        oraclesLinkIdToOraclesLinkRequest[oraclesLinkId] = OraclesLinkRequest(
+            true,
+            0,
+            _req.requirements.perSource,
+            _req.requirements.minSourcesComplete
+        );
 
         // send out each source to the random oracles
         for (uint8 i = 0; i < _req.sources.length; i++) {
