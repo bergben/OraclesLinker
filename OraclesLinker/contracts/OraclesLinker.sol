@@ -1,6 +1,6 @@
 pragma solidity 0.6.8;
 
-import "oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol";
+import "./OraclesLinkInt256.sol";
 
 import "./OraclesLinksBuilder.sol";
 import "./OraclesLinksCoordinator.sol";
@@ -33,26 +33,43 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
             true,
             0,
             _req.requirements.perSource,
-            _req.requirements.minSourcesComplete
+            _req.requirements.minSourcesComplete,
+            _req.aggregationMethod
         );
 
+        sendChainlinkInt256Requests(oraclesLinkId, seed, _req.sources, oracleAddresses, jobIds, payments, oracleLevels);
+
+        return oraclesLinkId;
+    }
+
+    function sendChainlinkInt256Requests(
+        bytes32 _oraclesLinkId,
+        bytes32 _seed,
+        OraclesLinkInt256.Source[] memory _sources,
+        address[] memory _oracleAddresses,
+        bytes32[] memory _jobIds,
+        uint256[] memory _payments,
+        OracleLevel[] memory _oracleLevels
+    ) private {
+        bytes32[] memory sourceResponsesIds = new bytes32[](_sources.length);
+
         // send out each source to the random oracles
-        for (uint8 i = 0; i < _req.sources.length; i++) {
-            bytes32 sourceId = keccak256(abi.encodePacked(seed, i));
-            sourceResponsesIdToOraclesLinkId[sourceId] = oraclesLinkId;
-            isSourceResponsesComplete[sourceId] = false;
-            string memory url = _req.sources[i].url;
-            string memory path = _req.sources[i].path;
-            int256 multiplier = _req.sources[i].multiplier;
+        for (uint8 i = 0; i < _sources.length; i++) {
+            bytes32 sourceResponsesId = keccak256(abi.encodePacked(_seed, i));
+            sourceResponsesIdToOraclesLinkId[sourceResponsesId] = _oraclesLinkId;
+            isSourceResponsesComplete[sourceResponsesId] = false;
+            string memory url = _sources[i].url;
+            string memory path = _sources[i].path;
+            int256 multiplier = _sources[i].multiplier;
 
-            for (uint8 j = 0; j < oracleAddresses.length; j++) {
-                bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, oracleAddresses[j], jobIds[j], payments[j]);
+            for (uint8 j = 0; j < _oracleAddresses.length; j++) {
+                bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, _oracleAddresses[j], _jobIds[j], _payments[j]);
 
-                chainlinkRequestIdToOracleLevel[chainlinkRequestId] = oracleLevels[j];
-                chainlinkRequestIdsToSourceResponsesId[chainlinkRequestId] = sourceId;
+                chainlinkRequestIdToOracleLevel[chainlinkRequestId] = _oracleLevels[j];
+                chainlinkRequestIdsToSourceResponsesId[chainlinkRequestId] = sourceResponsesId;
             }
         }
 
-        return oraclesLinkId;
+        oraclesLinkIdToSourceResponsesIds[_oraclesLinkId] = sourceResponsesIds;
     }
 }

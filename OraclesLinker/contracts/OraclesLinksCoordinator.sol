@@ -1,6 +1,11 @@
 pragma solidity 0.6.8;
 
+// libraries
 import "./OraclesLink.sol";
+import "./OraclesLinkInt256.sol";
+import "@chainlink/contracts/src/v0.6/Median.sol";
+
+// contracts
 import "./RandomOraclesProviderHost.sol";
 import "./OraclesChainlinkHandler.sol";
 
@@ -37,6 +42,7 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         uint8 sourcesComplete;
         OraclesLink.PerSourceRequirements requirements;
         uint8 minSourcesComplete;
+        OraclesLinkInt256.AggregationMethod aggregationMethod;
     }
 
     // map sourceResponsesId => actual oracle responses
@@ -57,6 +63,9 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
     // map for flag if the responses for a source are marked as complete
     // sourceReponsesId => bool
     mapping(bytes32 => bool) internal isSourceResponsesComplete;
+
+    // map for oraclesLinkId to all assigned source responses ids
+    mapping(bytes32 => bytes32[]) internal oraclesLinkIdToSourceResponsesIds;
 
     /**
      * @notice The method called when an answer is received for a chainlink int256 request, overrides the OraclesChainlinkHandler virtual method called there
@@ -82,10 +91,54 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
         // if not and if the requirements for the source responses are fulfilled => mark source as complete
         if (!isSourceResponsesComplete[sourceResponsesId] && isPerSourceRequirementsFulfilled(responses, oraclesLinkRequest.requirements)) {
             isSourceResponsesComplete[sourceResponsesId] = true;
-            // new source has been marked as complete => check if minSourcesComplete is fulfilled for the oraclesLink
-
-            // on fulfill -> cleanup request and mappings etc.
+            handleSourceComplete(oraclesLinkId, oraclesLinkRequest);
         }
+    }
+
+    function handleSourceComplete(bytes32 _oraclesLinkId, OraclesLinkRequest storage _oraclesLinkRequest) private {
+        // new source has been marked as complete => check if minSourcesComplete is fulfilled for the oraclesLink
+        _oraclesLinkRequest.sourcesComplete++;
+        if (_oraclesLinkRequest.sourcesComplete >= _oraclesLinkRequest.minSourcesComplete) {
+            // oracles link is complete! => finish oraclesLink
+            handleOraclesLinkComplete(_oraclesLinkId, _oraclesLinkRequest);
+        }
+    }
+
+    function handleOraclesLinkComplete(bytes32 _oraclesLinkId, OraclesLinkRequest storage _oraclesLinkRequest) private {
+        // oracles link fulfills all requirements
+        // 1. get all sourceResponsesIds for the oraclesLinkId
+        bytes32[] storage sourceResponsesIds = oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
+
+        int256[] memory sourceResults = new int256[](sourceResponsesIds.length);
+
+        // 2. aggregate responses per source
+        for (uint8 i = 0; i < sourceResponsesIds.length; i++) {
+            ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesIds[i]];
+            if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
+                sourceResults[i] = Median.calculate(responsesInt256ToInt256(responses));
+            }
+        }
+
+        // 2. aggregate sources
+        int256 result;
+        if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
+            result = Median.calculate(sourceResults);
+        }
+
+        // 3. return answer by calling fulfill method that is overriden by user contract
+        fulfillOraclesLinkInt256(_oraclesLinkId, result);
+
+        // 4. cleanup mappings etc.
+    }
+
+    function responsesInt256ToInt256(ResponseInt256[] storage responses) private view returns (int256[] memory int256Responses) {
+        int256Responses = new int256[](responses.length);
+
+        for (uint8 i = 0; i < responses.length; i++) {
+            int256Responses[i] = responses[i].answer;
+        }
+
+        return int256Responses;
     }
 
     function addOraclesLink() internal returns (bytes32 oraclesLinkId, bytes32 seed) {
