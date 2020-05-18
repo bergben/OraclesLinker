@@ -1,7 +1,6 @@
 pragma solidity 0.6.8;
 
 import "./OraclesLinkRequirements.sol";
-import "./Utils.sol";
 import "./OraclesLink.sol";
 
 
@@ -15,9 +14,9 @@ library OraclesLinkInt256 {
     enum AggregationMethod {Median, None}
 
     struct Source {
-        bytes32 url;
-        bytes32 path;
-        uint256 multiplier;
+        string url;
+        string path;
+        int256 multiplier;
         bool exists;
     }
 
@@ -31,8 +30,7 @@ library OraclesLinkInt256 {
      * @notice Initializes a OraclesLinkInt256 request
      * @dev Sets the ID, callback address, and callback function signature on the request
      * @param self The uninitialized request
-     * @param _callbackAddress The callback address
-     * @param _callbackFunction The callback function signature
+     * @param _sources The amount of sources
      * @return The initialized request
      */
     function initialize(Request memory self, uint8 _sources) internal pure returns (OraclesLinkInt256.Request memory) {
@@ -49,13 +47,13 @@ library OraclesLinkInt256 {
         Request memory self,
         string memory _url,
         string memory _path,
-        uint256 _multiplier
+        int256 _multiplier
     ) internal pure {
         uint8 index = 0;
         while (self.sources[index].exists) {
             index++;
         }
-        self.sources[index] = Source(Utils.stringToBytes32(_url), Utils.stringToBytes32(_path), _multiplier, true);
+        self.sources[index] = Source(_url, _path, _multiplier, true);
     }
 
     function setAggregationMethod(Request memory self, AggregationMethod _aggregationMethod) internal pure {

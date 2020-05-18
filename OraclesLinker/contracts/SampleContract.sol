@@ -13,7 +13,7 @@ import "./OraclesLinker.sol"; // todo replace with npm
  * local test networks
  */
 contract SampleContract is OraclesLinker, Ownable {
-    event OraclesLinkFulfilled(int256 answer);
+    event OraclesLinkFulfilled(bytes32 oraclesLinkId, int256 answer);
     bytes32[] private oracleSources;
 
     constructor(address _randomOraclesProviderAddress) public {
@@ -29,7 +29,7 @@ contract SampleContract is OraclesLinker, Ownable {
 
     function triggerOraclesLink(uint256 _payment) public onlyOwner returns (bytes32 oraclesLinkId) {
         // user builds oracles link for multiple sources similar to how chainlink buildChainlinkRequest and then sendChainlinkRequestTo works
-        OraclesLinkInt256.Request memory oraclesLink = buildOraclesLinkInt256(3, address(this), this.fulfill.selector);
+        OraclesLinkInt256.Request memory oraclesLink = buildOraclesLinkInt256(3);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
@@ -39,13 +39,11 @@ contract SampleContract is OraclesLinker, Ownable {
     }
 
     /**
-     * @notice The fulfill method from OraclesLinks created by this contract
-     * @dev The recordOraclesLinkFulfilled protects this function from being called
-     * by anyone other than the RandomOraclesProvider that the request was sent to
+     * @notice The fulfill method from OraclesLinks Int256 created by this contract
      * @param _oraclesLinkId The ID that was generated for the OraclesLink
-     * @param _answer The answer provided by the Oracles
+     * @param _answer The answer provided by the aggregated Oracles and sources
      */
-    function fulfill(bytes32 _oraclesLinkId, int256 _answer) public recordOraclesLinkFulfilled(_oraclesLinkId) {
-        emit OraclesLinkFulfilled(_answer);
+    function fulfillOraclesLinkInt256(bytes32 _oraclesLinkId, int256 _answer) internal override {
+        emit OraclesLinkFulfilled(_oraclesLinkId, _answer);
     }
 }

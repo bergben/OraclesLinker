@@ -10,10 +10,10 @@ import "./OraclesLink.sol";
  */
 library OraclesLinkRequirements {
     struct Requirements {
-        OraclesLink.PerSourceRequirements perSourceRequirements;
+        OraclesLink.PerSourceRequirements perSource;
     }
 
-    function setSecurityLevel(Base memory self, OraclesLink.SecurityLevel _securityLevel) internal pure {
+    function setSecurityLevel(Requirements memory self, OraclesLink.SecurityLevel _securityLevel) internal pure {
         (
             uint8 totalMinResponses,
             uint8 seniorOraclesCount,
@@ -23,7 +23,7 @@ library OraclesLinkRequirements {
             uint8 noviceOraclesCount,
             uint8 noviceMinResponses
         ) = OraclesLink.getSecurityLevelRequirements(_securityLevel);
-        OraclesLinkBase.setPerSourceRequirements(
+        OraclesLinkRequirements.setPerSourceRequirements(
             self,
             totalMinResponses,
             seniorOraclesCount,
@@ -36,7 +36,7 @@ library OraclesLinkRequirements {
     }
 
     function setPerSourceRequirements(
-        Base memory self,
+        Requirements memory self,
         uint8 _totalMinResponses,
         uint8 _seniorOraclesCount,
         uint8 _seniorMinResponses,
@@ -45,7 +45,7 @@ library OraclesLinkRequirements {
         uint8 _noviceOraclesCount,
         uint8 _noviceMinResponses
     ) internal pure {
-        self.perSourceRequirements = OraclesLink.PerSourceRequirements(
+        self.perSource = OraclesLink.PerSourceRequirements(
             _totalMinResponses,
             _seniorOraclesCount,
             _seniorMinResponses,

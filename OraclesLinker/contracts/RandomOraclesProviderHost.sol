@@ -81,7 +81,7 @@ contract RandomOraclesProviderHost {
         bytes32 _seed,
         bytes32 _jobType
     )
-        private
+        internal
         returns (
             uint256[] memory seniorOracleIndices,
             uint256[] memory matureOracleIndices,
