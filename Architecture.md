@@ -1,3 +1,3 @@
 # Architecture
 
-![Image of Architecture](./OraclesLink%20Architecture.jpg)
+![Image of Architecture](./Architecture.jpg)
