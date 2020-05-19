@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "prettier": "prettier --write **/*.sol",
+    "init": "npm i && npm run seed",
     "lint": "prettier --list-different **/*.sol",
     "build": "truffle build",
     "compile": "truffle compile",

@@ -1,0 +1,6 @@
+- Better seperation of generic functionality and Int256 specific functionality in OraclesLinker
+- Link Payment integration
+- Cancel Request
+- Optimizations
+- Add more job types (Api Aggregation, Bool, etc.)
+- Random retrieval could be enhanced with Chainlink VRF or Ethereum 2.0 randomness

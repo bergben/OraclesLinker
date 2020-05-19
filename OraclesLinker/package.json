@@ -5,6 +5,7 @@
   "scripts": {
     "prettier": "prettier --write **/*.sol",
     "lint": "prettier --list-different **/*.sol",
+    "init": "npm i && npm run deploy-and-trigger",
     "build": "truffle build",
     "compile": "truffle compile",
     "migrate": "truffle migrate",
