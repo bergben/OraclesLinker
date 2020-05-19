@@ -28,9 +28,9 @@ library OraclesLink {
     uint8 private constant SL_MIN_noviceMinResponses = 0;
 
     uint8 private constant SL_LOW_totalMinResponses = 1;
-    uint8 private constant SL_LOW_seniorOraclesCount = 1;
+    uint8 private constant SL_LOW_seniorOraclesCount = 2;
     uint8 private constant SL_LOW_seniorMinResponses = 1;
-    uint8 private constant SL_LOW_matureOraclesCount = 1;
+    uint8 private constant SL_LOW_matureOraclesCount = 0;
     uint8 private constant SL_LOW_matureMinResponses = 0;
     uint8 private constant SL_LOW_noviceOraclesCount = 0;
     uint8 private constant SL_LOW_noviceMinResponses = 0;
