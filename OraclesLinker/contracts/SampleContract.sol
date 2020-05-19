@@ -41,7 +41,7 @@ contract SampleContract is OraclesLinker, Ownable {
         oraclesLink.addSource("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD", "USD", 100);
         oraclesLink.addSource("https://api.coingecko.com/api/v3/coins/ethereum/tickers", "USD", 100);
         oraclesLink.addSource("https://sample-source.com/api/ETH-USD", "USD", 100);
-        oraclesLink.setSecurityLevel(OraclesLink.SecurityLevel.Min);
+        oraclesLink.setSecurityLevel(OraclesLink.SecurityLevel.Default);
         oraclesLinkId = sendOraclesLinkInt256(oraclesLink, _payment);
         return oraclesLinkId;
     }

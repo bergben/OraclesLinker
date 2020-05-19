@@ -15,7 +15,7 @@ import "./OraclesChainlinkHandler.sol";
 /**
  * @title OraclesLinksCoordinator is a contract which manages OraclesLinks
  */
-abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesChainlinkHandler {
+abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesChainlinkHandlerMock {
     enum OracleLevel {Novice, Mature, Senior}
 
     event OraclesLinkRequested(bytes32 indexed id);
