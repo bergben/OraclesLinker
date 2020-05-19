@@ -1,0 +1,250 @@
+PS C:\Users\bened\Desktop\FHK\Masterarbeit\Prototype\OraclesLinker> npm run deploy-and-trigger  
+
+> oracles-linker@0.0.1 deploy-and-trigger C:\Users\bened\Desktop\FHK\Masterarbeit\Prototype\OraclesLinker
+> npm run reset && npm run trigger-oracles-link
+
+
+> oracles-linker@0.0.1 reset C:\Users\bened\Desktop\FHK\Masterarbeit\Prototype\OraclesLinker
+> truffle migrate --reset
+
+
+Compiling your contracts...
+===========================
+> Compiling @chainlink/contracts/src/v0.6/ChainlinkClient.sol
+> Compiling @chainlink/contracts/src/v0.6/Median.sol
+> Compiling @chainlink\contracts\src\v0.6\Chainlink.sol
+> Compiling @chainlink\contracts\src\v0.6\dev\SignedSafeMath.sol
+> Compiling @chainlink\contracts\src\v0.6\interfaces\ChainlinkRequestInterface.sol
+> Compiling @chainlink\contracts\src\v0.6\interfaces\ENSInterface.sol
+> Compiling @chainlink\contracts\src\v0.6\interfaces\LinkTokenInterface.sol
+> Compiling @chainlink\contracts\src\v0.6\interfaces\PointerInterface.sol
+> Compiling @chainlink\contracts\src\v0.6\vendor\Buffer.sol
+> Compiling @chainlink\contracts\src\v0.6\vendor\CBOR.sol
+> Compiling @chainlink\contracts\src\v0.6\vendor\ENSResolver.sol
+> Compiling @chainlink\contracts\src\v0.6\vendor\SafeMath.sol
+> Compiling .\contracts\Migrations.sol
+> Compiling .\contracts\OraclesChainlinkHandler.sol
+> Compiling .\contracts\OraclesLink.sol
+> Compiling .\contracts\OraclesLinkInt256.sol
+> Compiling .\contracts\OraclesLinkRequirements.sol
+> Compiling .\contracts\OraclesLinker.sol
+> Compiling .\contracts\OraclesLinksBuilder.sol
+> Compiling .\contracts\OraclesLinksCoordinator.sol
+> Compiling .\contracts\RandomOraclesProviderHost.sol
+> Compiling .\contracts\SampleContract.sol
+> Compiling openzeppelin-solidity/contracts/access/Ownable.sol
+> Compiling openzeppelin-solidity\contracts\GSN\Context.sol
+> Compiling oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol
+> Compilation warnings encountered:
+
+    @chainlink/contracts/src/v0.6/Chainlink.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/ChainlinkClient.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/Median.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/dev/SignedSafeMath.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/interfaces/ChainlinkRequestInterface.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/interfaces/ENSInterface.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/interfaces/PointerInterface.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/vendor/Buffer.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/vendor/CBOR.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/vendor/ENSResolver.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,@chainlink/contracts/src/v0.6/vendor/SafeMath.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,openzeppelin-solidity/contracts/GSN/Context.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,openzeppelin-solidity/contracts/access/Ownable.sol: Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+,/C/Users/bened/Desktop/FHK/Masterarbeit/Prototype/OraclesLinker/contracts/OraclesLinker.sol:15:75: Warning: Unused function parameter. Remove or comment out the variable name to silence this warning.    function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req, uint256 _payment)
+                                                                          ^--------------^
+
+> Artifacts written to C:\Users\bened\Desktop\FHK\Masterarbeit\Prototype\OraclesLinker\build\contracts
+> Compiled successfully using:
+   - solc: 0.6.8+commit.0bbfe453.Emscripten.clang
+
+
+
+Starting migrations...
+======================
+> Network name:    'development'
+> Network id:      5777
+> Block gas limit: 6721975 (0x6691b7)
+
+
+1_initial_migration.js
+======================
+
+   Replacing 'Migrations'
+   ----------------------
+   > transaction hash:    0x09e6ab0d60340feb30a930b175271fa8b1c7e7d7a4ce0c424123fd96c01e1b92
+   > Blocks: 0            Seconds: 0
+   > contract address:    0x71905d23a72C22188D0F55851E7Be9f5949F8d08
+   > block number:        34
+   > block timestamp:     1589901673
+   > account:             0x14Fb358B4c6D8FC33EC816332558b10d845c416f
+   > balance:             99.69584574
+   > gas used:            164391 (0x28227)
+   > gas price:           20 gwei
+   > value sent:          0 ETH
+   > total cost:          0.00328782 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:          0.00328782 ETH
+
+
+2_deploy_contracts.js
+=====================
+
+   Replacing 'SampleContract'
+   --------------------------
+   > transaction hash:    0x4a9009b8ccaefef0cddb4672a86e99c76ec22dd2844de85fc4969e54c5847e79
+   > Blocks: 0            Seconds: 0
+   > contract address:    0xAbA7687118bC7C6722cCdCcfC2d43ec71DE83d97
+   > block number:        36
+   > block timestamp:     1589901675
+   > account:             0x14Fb358B4c6D8FC33EC816332558b10d845c416f
+   > balance:             99.62457512
+   > gas used:            3521190 (0x35baa6)
+   > gas price:           20 gwei
+   > value sent:          0 ETH
+   > total cost:          0.0704238 ETH
+
+
+   > Saving migration to chain.
+   > Saving artifacts
+   -------------------------------------
+   > Total cost:           0.0704238 ETH
+
+
+Summary
+=======
+> Total deployments:   2
+> Final cost:          0.07371162 ETH
+
+
+
+> oracles-linker@0.0.1 trigger-oracles-link C:\Users\bened\Desktop\FHK\Masterarbeit\Prototype\OraclesLinker
+> truffle exec ./dev/truffle-scripts/triggerOraclesLink.js
+
+Using network 'development'.
+
+start triggering
+initialized
+payment 0x00000000000000000000000000000000000000000000001b1ae4d6e2ef500000
+Gas used for request 1373171
+triggered oracles Link with id 0xeac5a1266977d82199a17e8060afa3bb358285f3386c09f5146ea9e372a42660
+Total chainlinkRequests 15
+chainlinkRequests [
+  {
+    chainlinkRequestId: '0xc4d6f0de30da3485077da6a19100a2cae8c0d891fff8939e0346abe56891b1ca',
+    sourceResponsesId: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    sourceUrl: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  {
+    chainlinkRequestId: '0x4cf7ea1350d2681fa15522cadcf16851a2f8c1380d1c2cfaadbaad14e322a9c7',
+    sourceResponsesId: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    sourceUrl: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  {
+    chainlinkRequestId: '0xc5eb18dc030e76752bdd569e1fa79ffed23f94bdbe09558c8758ab0e2670d331',
+    sourceResponsesId: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    sourceUrl: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  {
+    chainlinkRequestId: '0x9ea974ca6312ebc83a238b6ba02ddeef20861e9e75af2ccaa6d675d157ceb044',
+    sourceResponsesId: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    sourceUrl: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  {
+    chainlinkRequestId: '0x37ef00469b03aa3a1dd964d30070e1ac0cf0dddd0a698b72d5310b93088171bb',
+    sourceResponsesId: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    sourceUrl: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  {
+    chainlinkRequestId: '0xb512cedf5a711ab28f40f13605a05ca05f7957585520808e97ee880daaa9b4dd',
+    sourceResponsesId: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    sourceUrl: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  {
+    chainlinkRequestId: '0x845a65648936808b94e7d9755ecfc68ce6746512dbe999a15a0b86b62c1e5a59',
+    sourceResponsesId: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    sourceUrl: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  {
+    chainlinkRequestId: '0xe00c253caafe714919cd06f56366a1ed10abe5648e4633453f4399af78f3ee1d',
+    sourceResponsesId: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    sourceUrl: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  {
+    chainlinkRequestId: '0x4e67f01aa1c80630e5f06169aac03218246010cb06e772d37469c22fe83ca494',
+    sourceResponsesId: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    sourceUrl: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  {
+    chainlinkRequestId: '0x2520d0af9cf3ed7afe6097dcfe6dbbbce72e9c8f08bc5c7fac94df779fcb6728',
+    sourceResponsesId: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    sourceUrl: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  {
+    chainlinkRequestId: '0xe5f76e5f5f489a7ff1d0895e23dd1fdcfa752ad32257916daa942e1104b6139c',
+    sourceResponsesId: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    sourceUrl: 'https://sample-source.com/api/ETH-USD'
+  },
+  {
+    chainlinkRequestId: '0x2af8e9aa4fa7429a3a93a363a46cf04762bc7bfc8b44e9ea9406387d9b2e1cfa',
+    sourceResponsesId: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    sourceUrl: 'https://sample-source.com/api/ETH-USD'
+  },
+  {
+    chainlinkRequestId: '0x81d688205c63f430f0cdc7d71cbe5df8630fa8c75667270cbd50f451fa2ebe44',
+    sourceResponsesId: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    sourceUrl: 'https://sample-source.com/api/ETH-USD'
+  },
+  {
+    chainlinkRequestId: '0xd92e71e7c5eef7b27631b78e2d18aef1192a949375aa7cb98b22aca94eed0778',
+    sourceResponsesId: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    sourceUrl: 'https://sample-source.com/api/ETH-USD'
+  },
+  {
+    chainlinkRequestId: '0x81145a79ccf3211e74ded99afda68018b698a279d68666bbe804de8c99fd00c7',
+    sourceResponsesId: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    sourceUrl: 'https://sample-source.com/api/ETH-USD'
+  }
+]
+sources Map {
+  '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1' => {
+    id: '0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1',
+    url: 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD'
+  },
+  '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db' => {
+    id: '0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db',
+    url: 'https://api.coingecko.com/api/v3/coins/ethereum/tickers'
+  },
+  '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a' => {
+    id: '0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a',
+    url: 'https://sample-source.com/api/ETH-USD'
+  }
+}
+ --- sending out mock answers for the chainlink requests ---
+sent out answer:2 for chainlink request id 0xc4d6f0de30da3485077da6a19100a2cae8c0d891fff8939e0346abe56891b1ca with source responses id 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1
+sent out answer:8 for chainlink request id 0x9ea974ca6312ebc83a238b6ba02ddeef20861e9e75af2ccaa6d675d157ceb044 with source responses id 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1
+sent out answer:3 for chainlink request id 0x845a65648936808b94e7d9755ecfc68ce6746512dbe999a15a0b86b62c1e5a59 with source responses id 0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db
+sent out answer:3 for chainlink request id 0x2520d0af9cf3ed7afe6097dcfe6dbbbce72e9c8f08bc5c7fac94df779fcb6728 with source responses id 0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db
+sent out answer:4 for chainlink request id 0x81d688205c63f430f0cdc7d71cbe5df8630fa8c75667270cbd50f451fa2ebe44 with source responses id 0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a
+sent out answer:6 for chainlink request id 0x4cf7ea1350d2681fa15522cadcf16851a2f8c1380d1c2cfaadbaad14e322a9c7 with source responses id 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1
+sent out answer:5 for chainlink request id 0xc5eb18dc030e76752bdd569e1fa79ffed23f94bdbe09558c8758ab0e2670d331 with source responses id 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1
+sent out answer:8 for chainlink request id 0x37ef00469b03aa3a1dd964d30070e1ac0cf0dddd0a698b72d5310b93088171bb with source responses id 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1
+sent out answer:6 for chainlink request id 0xb512cedf5a711ab28f40f13605a05ca05f7957585520808e97ee880daaa9b4dd with source responses id 0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db
+---------------------
+OraclesLinkFulfilled!
+sent out answers: 2,8,6,5,8 for source 0xc7c7d93a792c82042ef38869a005764e19a739f934a218c667dca0be114efaf1 with url https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD
+source median would be 6
+sent out answers: 3,3,6 for source 0xb5c8e0529b33cbeb3a4dd374bee02fd7e7baed448df6b9b43631767a850eb0db with url https://api.coingecko.com/api/v3/coins/ethereum/tickers
+source median would be 3
+sent out answers: 4 for source 0x2414ee495ad9daa44289e6028499a275165752920d7efdaeccb97ac11cc4642a with url https://sample-source.com/api/ETH-USD
+source median would be 4
+---------------------
+calculated median would be 4
+---------------------
+OraclesLink 0xeac5a1266977d82199a17e8060afa3bb358285f3386c09f5146ea9e372a42660 fulfilled with aggregated answer: 4
+---------------------
+triggering finished
