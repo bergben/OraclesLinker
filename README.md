@@ -8,7 +8,7 @@ An example run log output can be seen in [example run log file](example%20run.lo
 See [Architecture.md](./Architecture.md)
 
 ## Usage
-An example usage of the package is shown in the SampleContract.sol under OraclesLinker/contracts.
+An example usage of the package is shown in the FrostInsuranceSampleContract.sol under OraclesLinker/contracts.
 
 ## Development
 
@@ -24,17 +24,25 @@ An example usage of the package is shown in the SampleContract.sol under Oracles
 
 ### 2. Deploy OraclesLinker (with example Smart Contract)
  - paste the previously copied RandomOraclesProvider address into the file ./OraclesLinker/migrations/2_deploy_contracts.js (line 5)
- - remove line 21: `"oracles-link-provider": "~0.0.1"` from ./OraclesLinker/package.json
  - cd into ./OraclesLinker
- - `npm i`
- - add line 21: `"oracles-link-provider": "~0.0.1"` to ./OraclesLinker/package.json
- - `npm run link` (currently necessary until oracles-link-provider is available through npm)
- - `npm run deploy-and-trigger`
+ - `npm run init`
  - oraclesLink request is automatically triggered
 
 ### Debugging
 Transactions can be debugged with `truffle debug <transactionHash>`
 
+### Deploying to ropsten
+Run
+```truffle migrate --reset --compile-all --network ropsten```
+
+Notes: 
+- You may want to run the seeding after deploying: `truffle exec ./dev/truffle-scripts/truffleSeed.js --network ropsten`
+- Do not forget to set the correct address for the RandomOraclesProvider contract in ./OraclesLinker/migrations/2_deploy_contracts.js
+- Contracts can be verified on etherscan using truffle-flattener
+
+### Testing / Interacting
+
+The default Job type is "HttpGetInt256", the bytes32 value for that string is: 0x48747470476574496e7432353600000000000000000000000000000000000000
 
 ## Limitations
 - Freeloading might be a problem: as discussed in [the Chainlink Whitepaper (p.13)](https://link.smartcontract.com/whitepaper) chainlink is also trying to solve this problem

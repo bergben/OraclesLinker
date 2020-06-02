@@ -1,6 +1,6 @@
 pragma solidity 0.6.8;
 
-import "oracles-link-provider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol";
+import "../../OraclesLinkProvider/contracts/RandomOraclesProvider/OraclesLinkProvider.sol";
 import "./OraclesLink.sol";
 
 

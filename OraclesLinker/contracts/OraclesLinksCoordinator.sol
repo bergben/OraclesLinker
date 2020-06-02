@@ -15,12 +15,20 @@ import "./OraclesChainlinkHandler.sol";
 /**
  * @title OraclesLinksCoordinator is a contract which manages OraclesLinks
  */
-abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesChainlinkHandlerMock {
+abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesChainlinkHandler {
     enum OracleLevel {Novice, Mature, Senior}
 
     event OraclesLinkRequested(bytes32 indexed id);
     event OraclesLinkFulfilled(bytes32 indexed id);
-    event OraclesLinkChainlinkSourceCreated(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, string url);
+    event OraclesLinkSourceCreated(bytes32 oraclesLinkId, bytes32 sourceResponsesId, string url);
+    event OraclesLinkChainlinkCreated(
+        bytes32 oraclesLinkId,
+        bytes32 sourceResponsesId,
+        bytes32 chainlinkRequestId,
+        address oracleAddress,
+        bytes32 jobId,
+        uint256 cost
+    );
     event OraclesLinkSourceComplete(bytes32 oraclesLinkId, bytes32 sourceResponsesId);
     event OraclesLinkAggregated(bytes32 oraclesLinkId, int256 result);
     event OraclesLinkSourceAggregated(bytes32 oraclesLinkId, bytes32 sourceResponsesId, int256 result);
@@ -67,12 +75,8 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
     // map each outgoing chainlink request id to the oracle Level handling the chainlink request
     mapping(bytes32 => OracleLevel) internal chainlinkRequestIdToOracleLevel;
 
-    // map for flag if the responses for a source are marked as complete
-    // sourceReponsesId => bool
-    mapping(bytes32 => bool) internal isSourceResponsesComplete;
-
-    // map for oraclesLinkId to all assigned source responses ids
-    mapping(bytes32 => bytes32[]) internal oraclesLinkIdToSourceResponsesIds;
+    // map for oraclesLinkId to aggregated result for each completed source
+    mapping(bytes32 => int256[]) internal oraclesLinkIdToAggregatedSourceResults;
 
     /**
      * @notice The method called when an answer is received for a chainlink int256 request, overrides the OraclesChainlinkHandler virtual method called there
@@ -86,10 +90,13 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
         require(oraclesLinkRequest.exists, "Oracles Link for this Chainlink Request id does not exist");
 
+        bytes32 sourceResponsesId = chainlinkRequestIdToSourceResponsesId[_chainlinkRequestId];
+        // make sure source is not already completed
+        require(sourceResponsesIdToOraclesLinkId[sourceResponsesId][0] != 0, "Source already completed or does not exist");
+
         // retrieve oracle level and responses for the respective responses array for the source that this chainlink request id is assigned to
         OracleLevel oracleLevel = chainlinkRequestIdToOracleLevel[_chainlinkRequestId];
 
-        bytes32 sourceResponsesId = chainlinkRequestIdToSourceResponsesId[_chainlinkRequestId];
         ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
 
         // add oracle response
@@ -104,14 +111,27 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
         // check if source is not yet marked as complete
         // if not and if the requirements for the source responses are fulfilled => mark source as complete
-        if (!isSourceResponsesComplete[sourceResponsesId] && isPerSourceRequirementsFulfilled(responses, oraclesLinkRequest.requirements)) {
-            isSourceResponsesComplete[sourceResponsesId] = true;
+        if (isPerSourceRequirementsFulfilled(responses, oraclesLinkRequest.requirements)) {
             emit OraclesLinkSourceComplete(oraclesLinkId, sourceResponsesId);
-            handleSourceComplete(oraclesLinkId, oraclesLinkRequest);
+            handleSourceComplete(oraclesLinkId, sourceResponsesId, oraclesLinkRequest);
         }
     }
 
-    function handleSourceComplete(bytes32 _oraclesLinkId, OraclesLinkRequest storage _oraclesLinkRequest) private {
+    function handleSourceComplete(bytes32 _oraclesLinkId, bytes32 _sourceResponsesId, OraclesLinkRequest storage _oraclesLinkRequest) private {
+        // aggregate responses for the source
+        // 1. get all sourceResults for the oraclesLinkId
+        int256[] storage sourceResults = oraclesLinkIdToAggregatedSourceResults[_oraclesLinkId];
+
+        ResponseInt256[] storage responses = sourceResponsesIdToResponses[_sourceResponsesId];
+        if (responses.length > 0 && _oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
+            int256 result = Median.calculate(responsesInt256ToInt256(responses));
+            sourceResults.push(result);
+            emit OraclesLinkSourceAggregated(_oraclesLinkId, _sourceResponsesId, result);
+        }
+        // clean up mappings for this source once aggregated
+        delete sourceResponsesIdToResponses[_sourceResponsesId];
+        delete sourceResponsesIdToOraclesLinkId[_sourceResponsesId];
+
         // new source has been marked as complete => check if minSourcesComplete is fulfilled for the oraclesLink
         _oraclesLinkRequest.sourcesComplete++;
         if (_oraclesLinkRequest.sourcesComplete >= _oraclesLinkRequest.minSourcesComplete) {
@@ -122,41 +142,19 @@ abstract contract OraclesLinksCoordinator is RandomOraclesProviderHost, OraclesC
 
     function handleOraclesLinkComplete(bytes32 _oraclesLinkId, OraclesLinkRequest storage _oraclesLinkRequest) private {
         // oracles link fulfills all requirements
-        // 1. get all sourceResponsesIds for the oraclesLinkId
-        bytes32[] storage sourceResponsesIds = oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
-
-        int256[] memory sourceResultsTotal = new int256[](sourceResponsesIds.length);
-
-        uint8 sourceResultsIndex = 0;
-        // 2. aggregate responses per source
-        for (uint8 i = 0; i < sourceResponsesIds.length; i++) {
-            bytes32 sourceResponsesId = sourceResponsesIds[i];
-            ResponseInt256[] storage responses = sourceResponsesIdToResponses[sourceResponsesId];
-            if (responses.length > 0 && _oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
-                sourceResultsTotal[sourceResultsIndex] = Median.calculate(responsesInt256ToInt256(responses));
-                emit OraclesLinkSourceAggregated(_oraclesLinkId, sourceResponsesId, sourceResultsTotal[sourceResultsIndex]);
-                sourceResultsIndex++;
-            }
-            // clean up mappings for this source once aggregated
-            delete sourceResponsesIdToResponses[sourceResponsesId];
-            delete sourceResponsesIdToOraclesLinkId[sourceResponsesId];
-            delete isSourceResponsesComplete[sourceResponsesId];
-        }
-        int256[] memory sourceResultsNonEmpty = new int256[](sourceResultsIndex);
-        for (uint8 i = 0; i < sourceResultsIndex; i++) {
-            sourceResultsNonEmpty[i] = sourceResultsTotal[i];
-        }
-
+        // 1. get all sourceResults for the oraclesLinkId
+        int256[] storage sourceResults = oraclesLinkIdToAggregatedSourceResults[_oraclesLinkId];
+       
         // 2. aggregate sources
         int256 result;
         if (_oraclesLinkRequest.aggregationMethod == OraclesLinkInt256.AggregationMethod.Median) {
-            result = Median.calculate(sourceResultsNonEmpty);
+            result = Median.calculate(sourceResults);
         }
         emit OraclesLinkAggregated(_oraclesLinkId, result);
 
         // 3. cleanup mappings etc.
         delete oraclesLinkIdToOraclesLinkRequest[_oraclesLinkId];
-        delete oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
+        delete oraclesLinkIdToAggregatedSourceResults[_oraclesLinkId];
 
         // 4. return answer by calling fulfill method that is overriden by user contract
         emit OraclesLinkFulfilled(_oraclesLinkId);

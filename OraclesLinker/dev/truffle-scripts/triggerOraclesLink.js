@@ -1,4 +1,4 @@
-const SampleContract = artifacts.require("SampleContract");
+const FrostInsuranceSampleContract = artifacts.require("FrostInsuranceSampleContract");
 const {
   numberToUint256,
   setWeb3Instance,
@@ -9,7 +9,7 @@ module.exports = async (callback) => {
   console.log("start triggering");
   const accounts = await web3.eth.getAccounts();
   const mainAccount = accounts[0];
-  const instance = await SampleContract.deployed();
+  const instance = await FrostInsuranceSampleContract.deployed();
   setWeb3Instance(web3);
 
   console.log("initialized");

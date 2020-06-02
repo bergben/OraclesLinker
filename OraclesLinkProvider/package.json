@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@truffle/contract": "^4.2.5",
+    "@truffle/hdwallet-provider": "1.0.35",
     "prettier": "~2.0.5",
     "prettier-plugin-solidity": "~1.0.0-alpha.51",
     "truffle": "~5.1.26"

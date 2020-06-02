@@ -12,7 +12,7 @@ import "./OraclesLinksCoordinator.sol";
  * @title OraclesLinker is a contract which creates requests to multiple chainlink oracles picked at random by the RandomOraclesProvider
  */
 abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator {
-    function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req, uint256 _payment)
+    function sendOraclesLinkInt256(OraclesLinkInt256.Request memory _req)
         internal
         onlyValidRequirements(_req.requirements.perSource)
         returns (bytes32 oraclesLinkId)
@@ -53,16 +53,15 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
         uint256[] memory _payments,
         OracleLevel[] memory _oracleLevels
     ) private {
-        bytes32[] storage oraclesLinkSourceResponsesIds = oraclesLinkIdToSourceResponsesIds[_oraclesLinkId];
         // send out each source to the random oracles
         for (uint8 i = 0; i < _sources.length; i++) {
             bytes32 sourceResponsesId = keccak256(abi.encodePacked(_seed, i));
-            oraclesLinkSourceResponsesIds.push(sourceResponsesId);
             sourceResponsesIdToOraclesLinkId[sourceResponsesId] = _oraclesLinkId;
-            isSourceResponsesComplete[sourceResponsesId] = false;
             string memory url = _sources[i].url;
             string memory path = _sources[i].path;
             int256 multiplier = _sources[i].multiplier;
+
+            emit OraclesLinkSourceCreated(_oraclesLinkId, sourceResponsesId, url);
 
             for (uint8 j = 0; j < _oracleAddresses.length; j++) {
                 bytes32 chainlinkRequestId = sendInt256ChainlinkRequest(url, path, multiplier, _oracleAddresses[j], _jobIds[j], _payments[j]);
@@ -71,7 +70,14 @@ abstract contract OraclesLinker is OraclesLinksBuilder, OraclesLinksCoordinator 
                 chainlinkRequestIdToSourceResponsesId[chainlinkRequestId] = sourceResponsesId;
                 chainlinkRequestIdToOraclesLinkId[chainlinkRequestId] = _oraclesLinkId;
 
-                emit OraclesLinkChainlinkSourceCreated(chainlinkRequestId, sourceResponsesId, url);
+                emit OraclesLinkChainlinkCreated(
+                    _oraclesLinkId,
+                    sourceResponsesId,
+                    chainlinkRequestId,
+                    _oracleAddresses[j],
+                    _jobIds[j],
+                    _payments[j]
+                );
             }
         }
     }
