@@ -1,8 +1,7 @@
-import { Component, OnInit, Inject } from '@angular/core';
-import { WEB3 } from './web3';
-import Web3 from 'web3';
+import { Component, OnInit } from '@angular/core';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { FrostInsuranceContractService } from './frost-insurance-contract.service';
 
 interface OracleNode {
   name: string;
@@ -50,21 +49,21 @@ const TREE_DATA: OracleNode[] = [
 export class AppComponent implements OnInit {
   treeControl = new NestedTreeControl<OracleNode>(node => node.children);
   dataSource = new MatTreeNestedDataSource<OracleNode>();
+  creatingInquiry = false;
 
-  constructor(@Inject(WEB3) private web3: Web3) {
+  constructor(private frostInsuranceContractService: FrostInsuranceContractService) {
     this.dataSource.data = TREE_DATA;
   }
 
   ngOnInit() {
+    this.frostInsuranceContractService.init();
   }
 
   hasChild = (_: number, node: OracleNode) => !!node.children && node.children.length > 0;
 
   async createInquiry() {
-    if ('enable' in (this.web3.currentProvider as any)) {
-      await (this.web3.currentProvider as any).enable();
-    }
-    const accounts = await this.web3.eth.getAccounts();
-    console.log(accounts);
+    this.creatingInquiry = true;
+    await this.frostInsuranceContractService.createInquiry();
+    this.creatingInquiry = false;
   }
 }
