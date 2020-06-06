@@ -1,86 +1,68 @@
 <h1>Oracles Link: Frost Insurance Showcase</h1>
-<section>
 
-  <p>
-    You can create a new inquiry using the "Create inquiry" button below. <br />
-    This will trigger the smart contract function creates a new Request to fetch the current temperature in Kufstein,
-    Austria.
+<p class="error" [hidden]="(isConnectedToRopsten$ | async) === true">
+  Please connect to the Ropsten network and reload the page for this showcase.
+</p>
+<div [hidden]="(isConnectedToRopsten$ | async) === false">
+  <section>
 
-  </p>
+    <p>
+      You can create a new inquiry using the "Create inquiry" button below. <br />
+      This will trigger the smart contract function creates a new Request to fetch the current temperature in Kufstein,
+      Austria.
 
-  <button mat-flat-button color="primary" (click)="createInquiry()" [disabled]="creatingInquiry">Create inquiry</button>
+    </p>
 
-  <p [hidden]="!creatingInquiry">Creating inquiry... this might take a few minutes.</p>
+    <button mat-flat-button color="primary" (click)="createInquiry()" [disabled]="creatingInquiry">Create
+      inquiry</button>
 
-  <p class="error">
-    Not enough LINK available on the Frost Insurance Smart Contract to create a new inquiry.
-    <br />
-    Please send some Link to the contract using the <a href="https://ropsten.chain.link/" target="_blank">Ropsten
-      Chainlink Faucet</a>.
-    <br />
-    The contract address is: <input type="test" value="0x4ca55A262B7546D90dfF3B194513Edd51862620E" readonly>
-  </p>
+    <p [hidden]="!creatingInquiry">Creating inquiry... this might take a few minutes.</p>
 
-</section>
+    <p class="error">
+      Not enough LINK available on the Frost Insurance Smart Contract to create a new inquiry.
+      <br />
+      Please send some Link to the contract using the <a href="https://ropsten.chain.link/" target="_blank">Ropsten
+        Chainlink Faucet</a>.
+      <br />
+      The contract address is: <input type="test" value="0x4ca55A262B7546D90dfF3B194513Edd51862620E" readonly>
+    </p>
 
-<section>
-  <br /><br />
-  <hr />
-  <h3>Latest OraclesLink Requests:</h3>
+  </section>
 
-  <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="example-tree">
-    <!-- This is the tree node template for leaf nodes -->
-    <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
-      <li class="mat-tree-node">
-        <!-- use a disabled button to provide padding for tree leaf -->
-        <button mat-icon-button disabled></button>
-        {{node.name}}
+  <section>
+    <br /><br />
+    <hr />
+    <h3>Latest OraclesLink Requests:</h3>
+
+
+  </section>
+  <section>
+
+    <br /><br />
+    <hr />
+    <h3>Resources:</h3>
+    <ul>
+      <li><a href="https://ropsten.explorer.chain.link/job-runs?search=0x4ca55A262B7546D90dfF3B194513Edd51862620E"
+          target="_blank">Chainlink
+          Explorer for FrostInsuranceSampleContract requester</a></li>
+      <li>FrostInsuranceSampleContract:
+        <a href="https://ropsten.etherscan.io/address/0x4ca55A262B7546D90dfF3B194513Edd51862620E"
+          target="_blank">Etherscan</a>,
+        <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinker/contracts"
+          target="_blank">Github</a>
       </li>
-    </mat-tree-node>
-    <!-- This is the tree node template for expandable nodes -->
-    <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
-      <li>
-        <div class="mat-tree-node">
-          <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'toggle ' + node.name">
-            <mat-icon class="mat-icon-rtl-mirror">
-              {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
-            </mat-icon>
-          </button>
-          {{node.name}}
-        </div>
-        <ul [class.example-tree-invisible]="!treeControl.isExpanded(node)">
-          <ng-container matTreeNodeOutlet></ng-container>
-        </ul>
+      <li>RandomOraclesProvider:
+        <a href="https://ropsten.etherscan.io/address/0x7D8094e6643D4C3E169fD9426AC4c8Cf83042613"
+          target="_blank">Etherscan</a>,
+        <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinkProvider/contracts/RandomOraclesProvider"
+          target="_blank">Github</a>
       </li>
-    </mat-nested-tree-node>
-  </mat-tree>
-
-</section>
-<section>
-
-  <br /><br />
-  <hr />
-  <h3>Resources:</h3>
-  <ul>
-    <li><a href="https://ropsten.explorer.chain.link/job-runs?search=0x4ca55A262B7546D90dfF3B194513Edd51862620E"
-        target="_blank">Chainlink
-        Explorer for FrostInsuranceSampleContract requester</a></li>
-    <li>FrostInsuranceSampleContract:
-      <a href="https://ropsten.etherscan.io/address/0x4ca55A262B7546D90dfF3B194513Edd51862620E"
-        target="_blank">Etherscan</a>,
-      <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinker/contracts" target="_blank">Github</a>
-    </li>
-    <li>RandomOraclesProvider:
-      <a href="https://ropsten.etherscan.io/address/0x7D8094e6643D4C3E169fD9426AC4c8Cf83042613"
-        target="_blank">Etherscan</a>,
-      <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinkProvider/contracts/RandomOraclesProvider"
-        target="_blank">Github</a>
-    </li>
-    <li>OraclesStore:
-      <a href="https://ropsten.etherscan.io/address/0x82E95FFE665D823328251cF644Fef73E7496735f"
-        target="_blank">Etherscan</a>,
-      <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinkProvider/contracts/OraclesStore"
-        target="_blank">Github</a>
-    </li>
-  </ul>
-</section>
+      <li>OraclesStore:
+        <a href="https://ropsten.etherscan.io/address/0x82E95FFE665D823328251cF644Fef73E7496735f"
+          target="_blank">Etherscan</a>,
+        <a href="https://github.com/bergben/OraclesLinker/tree/master/OraclesLinkProvider/contracts/OraclesStore"
+          target="_blank">Github</a>
+      </li>
+    </ul>
+  </section>
+</div>
