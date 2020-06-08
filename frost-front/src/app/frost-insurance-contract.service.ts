@@ -14,6 +14,7 @@ const contractAddress = "0x4ca55A262B7546D90dfF3B194513Edd51862620E";
 export class FrostInsuranceContractService {
     private frostInsuranceContract: Contract;
     public isConnectedToRopsten$ = new BehaviorSubject<boolean>(false);
+    public isEnoughLinkBalance$ = new BehaviorSubject<boolean>(false);
 
     constructor(@Inject(WEB3) private web3: Web3, private store: StoreService) {
     }
@@ -26,6 +27,12 @@ export class FrostInsuranceContractService {
         this.isConnectedToRopsten$.next(true);
         this.frostInsuranceContract = new this.web3.eth.Contract(contractAbi.abi as any, contractAddress);
         this.subscribeEventLogs();
+        this.isEnoughLinkBalance$.next(await this.getLinkBalance() > 30 ? true : false);
+    }
+
+    private async getLinkBalance(): Promise<number> {
+        const balance = this.web3.utils.fromWei(await this.frostInsuranceContract.methods.linkBalance().call());
+        return parseFloat(balance);
     }
 
     async createInquiry(): Promise<string> {

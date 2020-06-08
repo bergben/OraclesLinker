@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { FrostInsuranceContractService } from './frost-insurance-contract.service';
 import { StoreService, OraclesLink } from './store.service';
 import { Subscription } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +17,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   get isConnectedToRopsten$() {
     return this.frostInsuranceContractService.isConnectedToRopsten$;
+  }
+
+  get isEnoughLinkBalance$() {
+    return this.frostInsuranceContractService.isEnoughLinkBalance$;
   }
 
   constructor(private frostInsuranceContractService: FrostInsuranceContractService, private store: StoreService, private ngZone: NgZone) {

@@ -22,7 +22,8 @@
       any Test Ether, you can use the
       <a href="https://faucet.ropsten.be/" target="_blank">Ropsten Ethereum Faucet</a>.
     </p>
-    <button nz-button nzType="primary" (click)="createInquiry()" [disabled]="creatingInquiry">
+    <button nz-button nzType="primary" (click)="createInquiry()"
+      [disabled]="creatingInquiry || !(isEnoughLinkBalance$ | async)">
       Create inquiry
     </button>
 
@@ -38,11 +39,11 @@
           target="_blank">Etherscan</a>.</i>
     </p>
 
-    <p class="error" [hidden]="true">
+    <p class="error" [hidden]="isEnoughLinkBalance$ | async">
       Not enough LINK available on the Frost Insurance Smart Contract to create a new inquiry.
       <br />
       Please send some Link to the contract using the <a href="https://ropsten.chain.link/" target="_blank">Ropsten
-        Chainlink Faucet</a>.
+        Chainlink Faucet</a> and reload this page.
       <br />
       The contract address is: <input type="test" value="0x4ca55A262B7546D90dfF3B194513Edd51862620E" readonly>
     </p>
