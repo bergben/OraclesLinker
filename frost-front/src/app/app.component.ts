@@ -1,31 +1,38 @@
-import { Component, OnInit } from '@angular/core';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { FrostInsuranceContractService } from './frost-insurance-contract.service';
+import { StoreService, OraclesLink } from './store.service';
+import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.sass']
 })
-export class AppComponent implements OnInit {
-  // treeControl = new NestedTreeControl<OracleNode>(node => node.children);
-  // dataSource = new MatTreeNestedDataSource<OracleNode>();
+export class AppComponent implements OnInit, OnDestroy {
   creatingInquiry = false;
+  private subscriptions: Subscription[] = [];
+
+  oraclesLinks: OraclesLink[] = [];
 
   get isConnectedToRopsten$() {
     return this.frostInsuranceContractService.isConnectedToRopsten$;
   }
 
-  constructor(private frostInsuranceContractService: FrostInsuranceContractService) {
-    // this.dataSource.data = TREE_DATA;
+  constructor(private frostInsuranceContractService: FrostInsuranceContractService, private store: StoreService, private ngZone: NgZone) {
   }
 
   ngOnInit() {
     this.frostInsuranceContractService.init();
+    this.subscriptions.push(this.store.latestOraclesLinks$.pipe(debounceTime(500)).subscribe(oraclesLinks => {
+      this.ngZone.run(() => this.oraclesLinks = oraclesLinks);
+      console.log(this.oraclesLinks);
+    }));
   }
 
-  // hasChild = (_: number, node: OracleNode) => !!node.children && node.children.length > 0;
+  ngOnDestroy() {
+    this.subscriptions.forEach(x => x.unsubscribe());
+  }
 
   async createInquiry() {
     this.creatingInquiry = true;

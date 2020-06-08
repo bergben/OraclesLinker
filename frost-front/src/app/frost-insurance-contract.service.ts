@@ -38,19 +38,20 @@ export class FrostInsuranceContractService {
     }
 
     private async subscribeEventLogs() {
-
-        // event OraclesLinkChainlinkCreated(
-        //     bytes32 oraclesLinkId,
-        //     bytes32 sourceResponsesId,
-        //     bytes32 chainlinkRequestId,
-        //     address oracleAddress,
-        //     bytes32 jobId,
-        //     uint256 cost
-        // );
-        // event ChainlinkAnswerInt256Handled(bytes32 chainlinkRequestId, bytes32 sourceResponsesId, bytes32 oraclesLinkId, int256 answer);
+        this.frostInsuranceContract.events.InquiryCreated({}, { fromBlock: 0, toBlock: 'latest' })
+            .on('data', event => this.store.inquiryCreated$.next(event))
+            .on('error', console.error);
 
         this.frostInsuranceContract.events.OraclesLinkSourceCreated({}, { fromBlock: 0, toBlock: 'latest' })
             .on('data', event => this.store.sourceCreated$.next(event))
+            .on('error', console.error);
+
+        this.frostInsuranceContract.events.OraclesLinkChainlinkCreated({}, { fromBlock: 0, toBlock: 'latest' })
+            .on('data', event => this.store.chainlinkCreated$.next(event))
+            .on('error', console.error);
+
+        this.frostInsuranceContract.events.ChainlinkAnswerInt256Handled({}, { fromBlock: 0, toBlock: 'latest' })
+            .on('data', event => this.store.chainlinkFulfilled$.next(event))
             .on('error', console.error);
 
         this.frostInsuranceContract.events.OraclesLinkSourceAggregated({}, { fromBlock: 0, toBlock: 'latest' })
@@ -59,10 +60,6 @@ export class FrostInsuranceContractService {
 
         this.frostInsuranceContract.events.InquiryFulfilled({}, { fromBlock: 0, toBlock: 'latest' })
             .on('data', event => this.store.inquiryFulfilled$.next(event))
-            .on('error', console.error);
-
-        this.frostInsuranceContract.events.InquiryCreated({}, { fromBlock: 0, toBlock: 'latest' })
-            .on('data', event => this.store.inquiryCreated$.next(event))
             .on('error', console.error);
     }
 }
