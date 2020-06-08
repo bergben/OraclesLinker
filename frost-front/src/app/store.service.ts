@@ -74,8 +74,9 @@ export class StoreService {
     }
 
     private updateLatestOraclesLinks() {
-        const oraclesLinks = [...this.oraclesLinks.values()].sort((x, y) => x.blockNumber - y.blockNumber);
+        let oraclesLinks = [...this.oraclesLinks.values()].sort((x, y) => y.blockNumber - x.blockNumber);
         // get latest 5
+        oraclesLinks = oraclesLinks.slice(0, oraclesLinks.length >= 5 ? 5 : oraclesLinks.length);
 
         oraclesLinks?.forEach(oraclesLink => {
             oraclesLink.sources = this.getOraclesLinkSources(oraclesLink.id);
@@ -139,7 +140,7 @@ export class StoreService {
 
     private onChainlinkCreated(oraclesLinkId: string, sourceId: string, chainlinkRequestId: string, oracleAddress: string, jobId: string, cost: string) {
         this.chainlinkRequests.set(chainlinkRequestId, {
-            ...this.sources.get(chainlinkRequestId),
+            ...this.chainlinkRequests.get(chainlinkRequestId),
             id: chainlinkRequestId,
             oraclesLinkId,
             sourceId,

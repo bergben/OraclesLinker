@@ -5,20 +5,40 @@
 </p>
 <div [hidden]="(isConnectedToRopsten$ | async) === false">
   <section>
-
+    <p>
+      This project shows an example for the OraclesLink prototype.
+      OraclesLink offers a simple api to create Chainlink requests to multiple,
+      automatically selected Chainlink Oracles and aggregates their answers for multiple external api sources
+      (Aggregaton method: Median).
+    </p>
     <p>
       You can create a new inquiry using the "Create inquiry" button below. <br />
-      This will trigger the smart contract function creates a new Request to fetch the current temperature in Kufstein,
-      Austria.
+      This will trigger the smart contract function which creates a new request to fetch the current temperature in
+      Kufstein, Austria. If the temperature would be below 0°C, a insurance payout could be triggered automatically
+      through respective smart contract logic.
+    </p>
+    <p>
+      You will need some Test Ether on your account to create the transaction on the Ropsten Testnet. If you don't have
+      any Test Ether, you can use the
+      <a href="https://faucet.ropsten.be/" target="_blank">Ropsten Ethereum Faucet</a>.
+    </p>
+    <button nz-button nzType="primary" (click)="createInquiry()" [disabled]="creatingInquiry">
+      Create inquiry
+    </button>
 
+    <p [hidden]="!creatingInquiry">
+      Creating inquiry... Please create the transaction using your web3 provider (such as metamask). <br />
+      Do not close this window. The OraclesLink will be automatically shown below in "Latest OraclesLink Requests" once
+      the transaction has been created.
+      <br />
+      <i>Note: This will take some time - the Ropsten Testnet can be really slow at times (even taking a few hours to
+        complete a transaction).
+        The transaction status can be viewed on <a
+          href="https://ropsten.etherscan.io/address/0x4ca55A262B7546D90dfF3B194513Edd51862620E"
+          target="_blank">Etherscan</a>.</i>
     </p>
 
-    <button mat-flat-button color="primary" (click)="createInquiry()" [disabled]="creatingInquiry">Create
-      inquiry</button>
-
-    <p [hidden]="!creatingInquiry">Creating inquiry... this might take a few minutes.</p>
-
-    <p class="error">
+    <p class="error" [hidden]="true">
       Not enough LINK available on the Frost Insurance Smart Contract to create a new inquiry.
       <br />
       Please send some Link to the contract using the <a href="https://ropsten.chain.link/" target="_blank">Ropsten
@@ -34,9 +54,91 @@
     <hr />
     <h3>Latest OraclesLink Requests:</h3>
 
-    <div *ngFor="let oraclesLink of oraclesLinks">
-      {{oraclesLink.id}}
-    </div>
+    <nz-collapse [nzBordered]="true" class="collapse-oracles-links">
+      <nz-collapse-panel *ngFor="let oraclesLink of oraclesLinks"
+        [nzHeader]="'OraclesLink: '+oraclesLink.id  + (oraclesLink.result ? ' (result: ' +oraclesLink.result+')' : '')"
+        [nzActive]="oraclesLink.active">
+        <ul>
+          <li><b>Aggregated Result:
+              <span *ngIf="oraclesLink.result">{{oraclesLink.result}}°C</span>
+              <span *ngIf="!oraclesLink.result">Pending...</span>
+            </b></li>
+          <li>triggered by: {{oraclesLink.triggeredBy}}</li>
+          <li>block number: {{oraclesLink.blockNumber}}</li>
+          <li>Creation transaction hash: {{oraclesLink.createTransactionHash}}</li>
+          <li *ngIf="oraclesLink.fulfillTransactionHash">Fulfilled transaction hash:
+            {{oraclesLink.fulfillTransactionHash}}</li>
+          <li>
+            <a href="https://ropsten.explorer.chain.link/job-runs?search={{oraclesLink.createTransactionHash}}"
+              target="_blank">Chainlink Explorer</a>
+          </li>
+          <li>
+            <a href="https://ropsten.etherscan.io/tx/{{oraclesLink.createTransactionHash}}" target="_blank">Etherscan
+              Create Transaction</a>
+          </li>
+          <li *ngIf="oraclesLink.fulfillTransactionHash">
+            <a href="https://ropsten.etherscan.io/tx/{{oraclesLink.fulfillTransactionHash}}" target="_blank">Etherscan
+              Fulfill Transaction</a>
+          </li>
+        </ul>
+        <h3>Sources</h3>
+        <div *ngIf="oraclesLink.sources && oraclesLink.sources.length > 0">
+          <nz-collapse class="collapse-sources">
+            <nz-collapse-panel *ngFor="let source of oraclesLink.sources"
+              [nzHeader]="'Source: '+source.id + (source.result ? ' (result: ' +source.result+')' : '')"
+              [nzActive]="source.active">
+              <ul>
+                <li><b>Aggregated Result:
+                    <span *ngIf="source.result">{{source.result}}°C</span>
+                    <span *ngIf="!source.result && oraclesLink.result">Awaiting aborted: Requirements for OraclesLink
+                      already fulfilled.</span>
+                    <span *ngIf="!source.result && !oraclesLink.result">Pending...</span>
+                  </b></li>
+                <li>Url: {{source.url}}</li>
+                <li>Aggregation transaction hash: {{source.transactionHash}}</li>
+                <li *ngIf="source.transactionHash">
+                  <a href="https://ropsten.etherscan.io/tx/{{source.transactionHash}}" target="_blank">Etherscan
+                    Aggregation Transaction</a>
+                </li>
+              </ul>
+              <h3>ChainlinkRequests</h3>
+              <div *ngIf="source.chainlinkRequests && source.chainlinkRequests.length > 0">
+                <nz-collapse class="collapse-chainlink-requests">
+                  <nz-collapse-panel *ngFor="let chainlinkRequest of source.chainlinkRequests"
+                    [nzHeader]="'ChainlinkRequest: '+chainlinkRequest.id + (chainlinkRequest.result ? ' (result: ' +chainlinkRequest.result+')' : '')"
+                    [nzActive]="chainlinkRequest.active">
+                    <ul>
+                      <li><b>Oracle Answer:
+                          <span *ngIf="chainlinkRequest.result">{{chainlinkRequest.result}}°C</span>
+                          <span *ngIf="!chainlinkRequest.result && source.result">Awaiting aborted: Source Requirements
+                            for OraclesLink already fulfilled.</span>
+                          <span *ngIf="!chainlinkRequest.result && !source.result && oraclesLink.result">Awaiting
+                            aborted: Requirements for OraclesLink already fulfilled.</span>
+                          <span
+                            *ngIf="!chainlinkRequest.result && !source.result && !oraclesLink.result">Pending...</span>
+                        </b></li>
+                      <li>Oracle address: {{chainlinkRequest.oracleAddress}}</li>
+                      <li>Job id: {{chainlinkRequest.jobId}}</li>
+                      <li>Cost: {{chainlinkRequest.cost}} LINK</li>
+                      <li *ngIf="chainlinkRequest.transactionHash">Fulfill transaction hash:
+                        {{chainlinkRequest.transactionHash}}</li>
+                      <li>
+                        <a href="https://ropsten.explorer.chain.link/job-runs?search={{chainlinkRequest.id}}"
+                          target="_blank">Chainlink Explorer</a>
+                      </li>
+                      <li *ngIf="chainlinkRequest.transactionHash">
+                        <a href="https://ropsten.etherscan.io/tx/{{chainlinkRequest.transactionHash}}"
+                          target="_blank">Etherscan Fulfill Transaction</a>
+                      </li>
+                    </ul>
+                  </nz-collapse-panel>
+                </nz-collapse>
+              </div>
+            </nz-collapse-panel>
+          </nz-collapse>
+        </div>
+      </nz-collapse-panel>
+    </nz-collapse>
 
   </section>
   <section>
