@@ -4,6 +4,19 @@ Oracles Link provides an easy way to send out Chainlink requests for multiple so
 
 An example run log output can be seen in [example run log file](example%20run.log).
 
+## Showcase / deployed smart contracts
+
+- FrostInsuranceSampleContract:
+  - [Etherscan](https://ropsten.etherscan.io/address/0x4ca55A262B7546D90dfF3B194513Edd51862620E)
+  - [Chainlink Explorer](https://ropsten.explorer.chain.link/job-runs?search=0x4ca55A262B7546D90dfF3B194513Edd51862620E)
+- RandomOraclesProvider:
+  - [Etherscan](https://ropsten.etherscan.io/address/0x7D8094e6643D4C3E169fD9426AC4c8Cf83042613)
+- OraclesStore:
+  - [Etherscan](https://ropsten.etherscan.io/address/0x82E95FFE665D823328251cF644Fef73E7496735f)
+- Frost insurance showcase fontend app: 
+  - [dApp on IPFS](https://ipfs.io/ipfs/QmPB8AAzuVoZsN4hrakHJvt4gMZVgapFSArtrE6U6SH7NP)
+  - [GitHub Pages](https://bergben.github.io/OraclesLinker/)
+
 ## Architecture
 See [Architecture.md](./Architecture.md)
 
