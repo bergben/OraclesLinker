@@ -16,7 +16,7 @@ module.exports = async (callback) => {
   var payment = numberToUint256(web3.utils.toWei("500"));
   console.log("payment", payment);
 
-  var oraclesLink = await instance.triggerOraclesLink(payment, {
+  var oraclesLink = await instance.createInquiry(payment, {
     from: mainAccount,
   });
 
