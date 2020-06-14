@@ -30,7 +30,7 @@ module.exports = async (callback) => {
   oraclesLink.logs.forEach((log) => {
     if (log.event === "OraclesLinkRequested") {
       oraclesLinkId = log.args.id;
-    } else if (log.event === "OraclesLinkChainlinkSourceCreated") {
+    } else if (log.event === "OraclesLinkSourceCreated") {
       chainlinkRequests.push({
         chainlinkRequestId: log.args.chainlinkRequestId,
         sourceResponsesId: log.args.sourceResponsesId,
